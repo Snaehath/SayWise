@@ -3,15 +3,11 @@ import {
   ActivityIndicator,
   Animated,
   Pressable,
-  StyleSheet,
   Text,
   TextStyle,
   View,
   ViewStyle,
 } from 'react-native';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { typography } from '../theme/typography';
 
 type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'outline' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -25,6 +21,7 @@ interface ButtonProps {
   loading?: boolean;
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
+  className?: string;
   style?: ViewStyle;
   textStyle?: TextStyle;
 }
@@ -38,10 +35,12 @@ export const Button: React.FC<ButtonProps> = ({
   loading = false,
   icon,
   iconPosition = 'left',
+  className = '',
   style,
   textStyle,
 }) => {
   const animatedScale = React.useRef(new Animated.Value(1)).current;
+  const isFlex1 = className.includes('flex-1');
 
   const handlePressIn = () => {
     Animated.spring(animatedScale, {
@@ -61,120 +60,90 @@ export const Button: React.FC<ButtonProps> = ({
     }).start();
   };
 
-  const getContainerStyle = (): ViewStyle => {
-    const base: ViewStyle = {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: spacing.roundLarge,
-    };
-
-    // Size
-    if (size === 'sm') {
-      base.paddingVertical = 8;
-      base.paddingHorizontal = 14;
-    } else if (size === 'md') {
-      base.paddingVertical = 12;
-      base.paddingHorizontal = 20;
-    } else {
-      base.paddingVertical = 16;
-      base.paddingHorizontal = 24;
+  const getVariantClass = (): string => {
+    if (disabled) {
+      return 'bg-slate-200';
     }
-
-    // Variant
     switch (variant) {
       case 'primary':
-        base.backgroundColor = disabled ? colors.cardBorder : colors.primary;
-        break;
+        return 'bg-indigo-600 active:bg-indigo-700 shadow-md shadow-indigo-500/25';
       case 'secondary':
-        base.backgroundColor = disabled ? colors.surfaceSubtle : colors.primaryLight;
-        break;
+        return 'bg-indigo-50 border border-indigo-100 active:bg-indigo-100';
       case 'danger':
-        base.backgroundColor = disabled ? colors.cardBorder : colors.recording;
-        break;
+        return 'bg-red-500 active:bg-red-600 shadow-md shadow-red-500/25';
       case 'outline':
-        base.backgroundColor = 'transparent';
-        base.borderWidth = 1.5;
-        base.borderColor = disabled ? colors.cardBorder : colors.primary;
-        break;
+        return 'bg-transparent border-[1.5px] border-indigo-600';
       case 'ghost':
-        base.backgroundColor = 'transparent';
-        break;
+        return 'bg-transparent';
     }
-
-    return base;
   };
 
-  const getTextStyle = (): TextStyle => {
-    const base: TextStyle = {
-      ...typography.button,
-    };
-
-    if (size === 'sm') {
-      base.fontSize = 14;
-    } else if (size === 'lg') {
-      base.fontSize = 17;
-      base.fontWeight = '700';
+  const getSizeClass = (): string => {
+    switch (size) {
+      case 'sm':
+        return 'py-2 px-3.5';
+      case 'md':
+        return 'py-3 px-4';
+      case 'lg':
+      default:
+        return 'py-3.5 px-5';
     }
+  };
 
+  const getTextClass = (): string => {
+    if (disabled) {
+      return 'text-slate-400';
+    }
     switch (variant) {
       case 'primary':
       case 'danger':
-        base.color = disabled ? colors.textMuted : colors.textInverse;
-        break;
+        return 'text-white font-bold';
       case 'secondary':
       case 'outline':
       case 'ghost':
-        base.color = disabled ? colors.textMuted : colors.primary;
-        break;
+        return 'text-indigo-600 font-bold';
     }
+  };
 
-    return base;
+  const getTextSizeClass = (): string => {
+    switch (size) {
+      case 'sm':
+        return 'text-sm font-semibold';
+      case 'md':
+        return 'text-sm font-bold';
+      case 'lg':
+      default:
+        return 'text-base font-bold';
+    }
   };
 
   return (
-    <Animated.View style={[{ transform: [{ scale: animatedScale }] }, style]}>
+    <Animated.View
+      className={isFlex1 ? 'flex-1' : ''}
+      style={[{ transform: [{ scale: animatedScale }] }, style]}
+    >
       <Pressable
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={disabled || loading}
-        style={[styles.pressable, getContainerStyle()]}
+        className={`w-full flex-row items-center justify-center rounded-2xl ${getVariantClass()} ${getSizeClass()} ${className.replace('flex-1', '').trim()}`}
       >
         {loading ? (
           <ActivityIndicator
             size="small"
-            color={variant === 'primary' || variant === 'danger' ? colors.textInverse : colors.primary}
+            color={variant === 'primary' || variant === 'danger' ? '#FFFFFF' : '#4F46E5'}
           />
         ) : (
-          <View style={styles.contentRow}>
-            {icon && iconPosition === 'left' && <View style={styles.iconLeft}>{icon}</View>}
-            <Text style={[getTextStyle(), textStyle]}>{title}</Text>
-            {icon && iconPosition === 'right' && <View style={styles.iconRight}>{icon}</View>}
+          <View className="flex-row items-center justify-center">
+            {icon && iconPosition === 'left' && <View className="mr-2">{icon}</View>}
+            <Text className={`${getTextClass()} ${getTextSizeClass()}`} style={textStyle}>
+              {title}
+            </Text>
+            {icon && iconPosition === 'right' && <View className="ml-2">{icon}</View>}
           </View>
         )}
       </Pressable>
     </Animated.View>
   );
 };
-
-const styles = StyleSheet.create({
-  pressable: {
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  contentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconLeft: {
-    marginRight: spacing.sm,
-  },
-  iconRight: {
-    marginLeft: spacing.sm,
-  },
-});

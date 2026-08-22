@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { AnalysisScreen } from '../screens/AnalysisScreen';
 import { ChallengeScreen } from '../screens/ChallengeScreen';
@@ -7,7 +7,6 @@ import { CompletionScreen } from '../screens/CompletionScreen';
 import { DifficultyScreen } from '../screens/DifficultyScreen';
 import { ResultScreen } from '../screens/ResultScreen';
 import { WelcomeScreen } from '../screens/WelcomeScreen';
-import { colors } from '../theme/colors';
 import { Challenge, Difficulty } from '../types/challenge';
 import { AnalysisResult, ChallengeResult } from '../types/result';
 
@@ -116,16 +115,9 @@ export const AppNavigator: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="dark" backgroundColor={colors.background} />
+    <View className="flex-1 bg-slate-50">
+      <StatusBar style="dark" backgroundColor="#F8FAFC" />
       {renderScreen()}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-});

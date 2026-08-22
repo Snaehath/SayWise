@@ -1,12 +1,10 @@
-import React, { useEffect, useRef } from "react";
-import { Animated, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Button } from "../components/Button";
-import { colors } from "../theme/colors";
-import { spacing } from "../theme/spacing";
-import { typography } from "../theme/typography";
-import { ChallengeResult } from "../types/result";
+import React, { useEffect, useRef } from 'react';
+import { Animated, Image, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Button } from '../components/Button';
+import { challengeStorage } from '../storage/challengeStorage';
+import { ChallengeResult } from '../types/result';
 
 interface CompletionScreenProps {
   result: ChallengeResult;
@@ -18,17 +16,20 @@ export const CompletionScreen: React.FC<CompletionScreenProps> = ({
   onComeAgain,
 }) => {
   const insets = useSafeAreaInsets();
+  const streakCount = challengeStorage.getStreakCount();
+  const totalWords = challengeStorage.getTotalWordsSpoken();
 
   // Animation values
   const scaleAnim = useRef(new Animated.Value(0.4)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
-  const badgeSlideAnim = useRef(new Animated.Value(20)).current;
+  const badgeSlideAnim = useRef(new Animated.Value(25)).current;
+  const streakPopAnim = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
     Animated.parallel([
       Animated.spring(scaleAnim, {
         toValue: 1,
-        friction: 6,
+        friction: 5,
         tension: 40,
         useNativeDriver: true,
       }),
@@ -42,101 +43,121 @@ export const CompletionScreen: React.FC<CompletionScreenProps> = ({
         duration: 600,
         useNativeDriver: true,
       }),
+      Animated.sequence([
+        Animated.delay(350),
+        Animated.spring(streakPopAnim, {
+          toValue: 1.05,
+          friction: 4,
+          tension: 60,
+          useNativeDriver: true,
+        }),
+        Animated.spring(streakPopAnim, {
+          toValue: 1,
+          friction: 6,
+          useNativeDriver: true,
+        }),
+      ]),
     ]).start();
   }, []);
 
   return (
     <View
-      style={[
-        styles.container,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
-      ]}
+      className="flex-1 bg-slate-50"
+      style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
     >
-      <View style={styles.content}>
-        {/* Animated Celebration Badge */}
+      <View className="flex-1 px-6 justify-center items-center">
+        {/* Animated Milo Mascot Celebration */}
         <Animated.View
+          className="items-center justify-center mb-4"
           style={[
-            styles.celebrationCircle,
             {
               transform: [{ scale: scaleAnim }],
               opacity: opacityAnim,
             },
           ]}
         >
-          <View style={styles.checkOuterRing}>
-            <View style={styles.checkInnerCircle}>
-              <Ionicons
-                name="checkmark-done"
-                size={44}
-                color={colors.textInverse}
-              />
-            </View>
+          <View className="w-36 h-36 rounded-full bg-indigo-50/70 p-2 items-center justify-center shadow-lg shadow-indigo-500/15 border-2 border-indigo-100">
+            <Image
+              source={require('../../assets/mascot/milo_celebrating.png')}
+              className="w-full h-full rounded-full"
+              resizeMode="contain"
+            />
           </View>
         </Animated.View>
 
-        {/* Headings */}
+        {/* Headings & Celebration */}
         <Animated.View
+          className="items-center w-full"
           style={[
-            styles.textSection,
             {
               transform: [{ translateY: badgeSlideAnim }],
               opacity: opacityAnim,
             },
           ]}
         >
-          <Text style={styles.headerTag}>CHALLENGE COMPLETE</Text>
-          <Text style={styles.mainTitle}>Great Work Today!</Text>
-          <Text style={styles.subTitle}>
-            You've successfully exercised your pronunciation and speaking
-            fluency.
+          {/* Streak Boost Pill */}
+          <Animated.View
+            style={{ transform: [{ scale: streakPopAnim }] }}
+            className="flex-row items-center bg-amber-50 px-4 py-1.5 rounded-full border border-amber-300 shadow-sm mb-2"
+          >
+            <Ionicons name="flame" size={18} color="#EA580C" style={{ marginRight: 6 }} />
+            <Text className="text-sm font-extrabold text-amber-800">
+              {streakCount} Day Streak Active!
+            </Text>
+          </Animated.View>
+
+          <Text className="text-2xl font-extrabold text-slate-900 text-center mb-1">
+            Fantastic Effort! 🎉
+          </Text>
+          <Text className="text-sm text-slate-600 text-center mb-4 px-3 leading-5">
+            You showed up for your vocal fitness. Your muscle memory is growing!
           </Text>
 
           {/* Achievement Summary Card */}
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Challenge</Text>
-              <Text style={styles.summaryValue} numberOfLines={1}>
+          <View className="w-full bg-white rounded-3xl p-4 border border-slate-200 shadow-sm mb-3">
+            <View className="flex-row items-center justify-between py-1">
+              <Text className="text-sm text-slate-500">Challenge</Text>
+              <Text className="text-sm font-bold text-slate-900 max-w-[60%]" numberOfLines={1}>
                 {result.challengeTitle}
               </Text>
             </View>
 
-            <View style={styles.cardDivider} />
+            <View className="h-[1px] bg-slate-100 my-2" />
 
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Overall Score</Text>
-              <View style={styles.scorePill}>
-                <Text style={styles.scorePillText}>
+            <View className="flex-row items-center justify-between py-1">
+              <Text className="text-sm text-slate-500">Overall Score</Text>
+              <View className="bg-indigo-50 px-3 py-0.5 rounded-full">
+                <Text className="text-sm font-extrabold text-indigo-600">
                   {result.overallScore} / 100
                 </Text>
               </View>
             </View>
 
-            <View style={styles.cardDivider} />
+            <View className="h-[1px] bg-slate-100 my-2" />
 
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Difficulty</Text>
-              <Text style={styles.difficultyValue}>{result.difficulty}</Text>
+            <View className="flex-row items-center justify-between py-1">
+              <Text className="text-sm text-slate-500">Total Words Spoken</Text>
+              <Text className="text-sm font-extrabold text-emerald-600">~{totalWords} words</Text>
             </View>
           </View>
 
-          {/* Motivation Box */}
-          <View style={styles.motivationBox}>
+          {/* Emotional Motivation Box */}
+          <View className="flex-row items-center bg-indigo-50 p-3.5 rounded-2xl border border-indigo-100">
             <Ionicons
-              name="flame"
-              size={22}
-              color="#EA580C"
-              style={{ marginRight: spacing.sm }}
+              name="sparkles"
+              size={20}
+              color="#4F46E5"
+              style={{ marginRight: 8 }}
             />
-            <Text style={styles.motivationText}>
-              Keep practicing consistently and come back tomorrow to keep your
-              speaking streak going!
+            <Text className="text-xs text-indigo-900 flex-1 leading-5 font-medium">
+              "Every single practice session rewires your brain for smoother, faster English speech."
             </Text>
           </View>
         </Animated.View>
       </View>
 
       {/* Bottom CTA */}
-      <View style={styles.bottomBar}>
+      <View className="bg-white px-5 pt-3.5 pb-6 border-t border-slate-200 shadow-xl">
         <Button
           title="Return Home"
           onPress={onComeAgain}
@@ -146,7 +167,7 @@ export const CompletionScreen: React.FC<CompletionScreenProps> = ({
             <Ionicons
               name="home-outline"
               size={18}
-              color={colors.textInverse}
+              color="#FFFFFF"
             />
           }
         />
@@ -154,144 +175,3 @@ export const CompletionScreen: React.FC<CompletionScreenProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: spacing.xl,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  celebrationCircle: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: spacing.xl,
-  },
-  checkOuterRing: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: colors.successLight,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkInnerCircle: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    backgroundColor: colors.success,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: colors.success,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 6,
-  },
-  textSection: {
-    alignItems: "center",
-    width: "100%",
-  },
-  headerTag: {
-    ...typography.badge,
-    color: colors.successDark,
-    letterSpacing: 1,
-    marginBottom: spacing.xs,
-  },
-  mainTitle: {
-    ...typography.h1,
-    color: colors.textPrimary,
-    textAlign: "center",
-    marginBottom: spacing.xs,
-  },
-  subTitle: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: "center",
-    marginBottom: spacing.xl,
-  },
-  summaryCard: {
-    width: "100%",
-    backgroundColor: colors.surface,
-    borderRadius: spacing.roundLarge,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-    marginBottom: spacing.lg,
-  },
-  summaryRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: spacing.xs,
-  },
-  summaryLabel: {
-    ...typography.body,
-    color: colors.textSecondary,
-  },
-  summaryValue: {
-    ...typography.body,
-    fontWeight: "700",
-    color: colors.textPrimary,
-    maxWidth: "60%",
-  },
-  cardDivider: {
-    height: 1,
-    backgroundColor: colors.surfaceSubtle,
-    marginVertical: spacing.sm,
-  },
-  scorePill: {
-    backgroundColor: colors.primaryLight,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: spacing.roundPill,
-  },
-  scorePillText: {
-    ...typography.caption,
-    fontWeight: "800",
-    color: colors.primary,
-  },
-  difficultyValue: {
-    ...typography.body,
-    fontWeight: "700",
-    color: colors.textPrimary,
-    textTransform: "capitalize",
-  },
-  motivationBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.primaryLight,
-    padding: spacing.md,
-    borderRadius: spacing.roundMedium,
-    borderWidth: 1,
-    borderColor: "#E0E7FF",
-  },
-  motivationText: {
-    ...typography.bodySmall,
-    color: colors.primaryDark,
-    flex: 1,
-    lineHeight: 18,
-  },
-  bottomBar: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: colors.cardBorder,
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-});

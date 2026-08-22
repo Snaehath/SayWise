@@ -1,21 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Alert, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AudioModule, RecordingPresets, useAudioRecorder } from 'expo-audio';
+import { RecordingPresets, useAudioRecorder } from 'expo-audio';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
 import { Header } from '../components/Header';
 import { RecordingVisualizer } from '../components/RecordingVisualizer';
 import { recordingService } from '../services/recordingService';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { typography } from '../theme/typography';
 import { Challenge } from '../types/challenge';
 
 interface ChallengeScreenProps {
@@ -167,44 +158,46 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
   const getDifficultyBadge = () => {
     switch (challenge.difficulty) {
       case 'beginner':
-        return { label: 'Beginner', bg: colors.beginnerBg, text: colors.beginner };
+        return { label: 'Beginner', bgClass: 'bg-emerald-50', textClass: 'text-emerald-700' };
       case 'intermediate':
-        return { label: 'Intermediate', bg: colors.intermediateBg, text: colors.intermediate };
+        return { label: 'Intermediate', bgClass: 'bg-blue-50', textClass: 'text-blue-700' };
       case 'advanced':
-        return { label: 'Advanced', bg: colors.advancedBg, text: colors.advanced };
+        return { label: 'Advanced', bgClass: 'bg-purple-50', textClass: 'text-purple-700' };
     }
   };
 
   const badge = getDifficultyBadge();
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       {/* Top Header */}
       <Header
         onBack={handleBackPress}
         title="Speaking Challenge"
         rightElement={
-          <View style={[styles.badge, { backgroundColor: badge.bg }]}>
-            <Text style={[styles.badgeText, { color: badge.text }]}>{badge.label}</Text>
+          <View className={`px-2.5 py-1 rounded-full ${badge.bgClass}`}>
+            <Text className={`text-xs font-bold uppercase tracking-wider ${badge.textClass}`}>{badge.label}</Text>
           </View>
         }
       />
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Challenge Header Info */}
-        <View style={styles.titleSection}>
-          <Text style={styles.challengeId}>Challenge #{challenge.id.replace(/[^0-9]/g, '') || '001'}</Text>
-          <Text style={styles.challengeTitle}>{challenge.title}</Text>
+        <View className="mb-4">
+          <Text className="text-xs font-bold text-indigo-600 tracking-wider uppercase mb-1">
+            DAILY CHALLENGE
+          </Text>
+          <Text className="text-2xl font-extrabold text-slate-900 leading-8 mb-1">{challenge.title}</Text>
 
           {challenge.focusAreas && (
-            <View style={styles.focusPillsRow}>
+            <View className="flex-row flex-wrap gap-1.5 mt-1">
               {challenge.focusAreas.map((area, index) => (
-                <View key={index} style={styles.focusPill}>
-                  <Ionicons name="sparkles-outline" size={12} color={colors.primary} style={{ marginRight: 4 }} />
-                  <Text style={styles.focusPillText}>{area}</Text>
+                <View key={index} className="flex-row items-center bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
+                  <Ionicons name="sparkles-outline" size={12} color="#4F46E5" style={{ marginRight: 4 }} />
+                  <Text className="text-[11px] text-slate-600 font-medium">{area}</Text>
                 </View>
               ))}
             </View>
@@ -212,27 +205,27 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
         </View>
 
         {/* Focus Paragraph Card */}
-        <View style={styles.paragraphCard}>
-          <View style={styles.paragraphHeader}>
-            <Ionicons name="volume-medium-outline" size={18} color={colors.textMuted} />
-            <Text style={styles.readAloudLabel}>READ ALOUD CLEARLY</Text>
+        <View className="bg-white rounded-3xl p-5 border-[1.5px] border-slate-200 shadow-sm my-3">
+          <View className="flex-row items-center gap-1.5 mb-3">
+            <Ionicons name="volume-medium-outline" size={18} color="#94A3B8" />
+            <Text className="text-xs font-bold text-slate-400 tracking-wider uppercase">READ ALOUD CLEARLY</Text>
           </View>
-          <Text style={styles.paragraphText}>{challenge.paragraph}</Text>
+          <Text className="text-lg text-slate-900 leading-[30px] tracking-wide font-normal">{challenge.paragraph}</Text>
         </View>
 
         {/* Tips Box */}
-        <View style={styles.tipsBox}>
-          <Ionicons name="bulb-outline" size={18} color={colors.warning} style={{ marginRight: spacing.sm }} />
-          <Text style={styles.tipsText}>
+        <View className="flex-row items-start bg-amber-50 p-4 rounded-2xl border border-amber-200 mt-1">
+          <Ionicons name="bulb-outline" size={18} color="#D97706" style={{ marginRight: 8, marginTop: 1 }} />
+          <Text className="text-xs text-amber-900 flex-1 leading-5">
             Speak at a natural conversational tempo. Emphasize keywords and pause naturally at punctuation.
           </Text>
         </View>
 
         {/* Permission Denied Warning */}
         {permissionDenied && (
-          <View style={styles.errorBox}>
-            <Ionicons name="alert-circle" size={20} color={colors.recording} style={{ marginRight: spacing.sm }} />
-            <Text style={styles.errorText}>
+          <View className="flex-row items-center bg-red-50 p-4 rounded-2xl border border-red-200 mt-3">
+            <Ionicons name="alert-circle" size={20} color="#EF4444" style={{ marginRight: 8 }} />
+            <Text className="text-xs text-red-700 flex-1 font-medium">
               Microphone permission is required to complete this speaking challenge.
             </Text>
           </View>
@@ -240,28 +233,28 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
       </ScrollView>
 
       {/* Bottom Recording Section */}
-      <View style={styles.bottomRecordingSection}>
+      <View className="bg-white px-5 pt-3.5 pb-6 border-t border-slate-200 shadow-xl">
         {isRecording ? (
-          <View style={styles.activeRecordingBox}>
+          <View className="w-full">
             <RecordingVisualizer durationSec={durationSec} />
             <Button
               title="Stop Reading"
               onPress={handleStopRecording}
               variant="danger"
               size="lg"
-              icon={<Ionicons name="stop" size={18} color={colors.textInverse} />}
-              style={styles.stopButton}
+              icon={<Ionicons name="stop" size={18} color="#FFFFFF" />}
+              className="mt-1"
             />
           </View>
         ) : (
-          <View style={styles.startRecordingBox}>
+          <View className="w-full">
             <Button
               title="Start Reading"
               onPress={handleStartRecording}
               variant="primary"
               size="lg"
               loading={isPreparing}
-              icon={<Ionicons name="mic" size={22} color={colors.textInverse} />}
+              icon={<Ionicons name="mic" size={22} color="#FFFFFF" />}
             />
           </View>
         )}
@@ -269,147 +262,3 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollContent: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.xl,
-  },
-  badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: spacing.roundPill,
-  },
-  badgeText: {
-    ...typography.caption,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  titleSection: {
-    marginBottom: spacing.md,
-  },
-  challengeId: {
-    ...typography.caption,
-    color: colors.primary,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginBottom: 4,
-  },
-  challengeTitle: {
-    ...typography.h1,
-    color: colors.textPrimary,
-    fontSize: 24,
-    lineHeight: 30,
-    marginBottom: spacing.xs,
-  },
-  focusPillsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-    marginTop: spacing.xs,
-  },
-  focusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surfaceSubtle,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: spacing.roundPill,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-  },
-  focusPillText: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    fontSize: 11,
-  },
-  paragraphCard: {
-    backgroundColor: colors.surface,
-    borderRadius: spacing.roundLarge,
-    padding: spacing.lg,
-    borderWidth: 1.5,
-    borderColor: colors.cardBorder,
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
-    marginVertical: spacing.md,
-  },
-  paragraphHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-    gap: 6,
-  },
-  readAloudLabel: {
-    ...typography.caption,
-    color: colors.textMuted,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-  },
-  paragraphText: {
-    ...typography.bodyLarge,
-    color: colors.textPrimary,
-    lineHeight: 30,
-    letterSpacing: 0.1,
-  },
-  tipsBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: colors.warningLight,
-    padding: spacing.md,
-    borderRadius: spacing.roundMedium,
-    borderWidth: 1,
-    borderColor: '#FEF3C7',
-    marginTop: spacing.xs,
-  },
-  tipsText: {
-    ...typography.bodySmall,
-    color: '#92400E',
-    flex: 1,
-    lineHeight: 18,
-  },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.recordingLight,
-    padding: spacing.md,
-    borderRadius: spacing.roundMedium,
-    marginTop: spacing.md,
-  },
-  errorText: {
-    ...typography.bodySmall,
-    color: colors.recordingDark,
-    flex: 1,
-    fontWeight: '500',
-  },
-  bottomRecordingSection: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: colors.cardBorder,
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  startRecordingBox: {
-    width: '100%',
-  },
-  activeRecordingBox: {
-    width: '100%',
-  },
-  stopButton: {
-    marginTop: spacing.xs,
-  },
-});

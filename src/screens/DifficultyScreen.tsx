@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
 import { DifficultyCard } from '../components/DifficultyCard';
 import { Header } from '../components/Header';
+import { MascotMessage } from '../components/MascotMessage';
 import { challengeService } from '../services/challengeService';
 import { challengeStorage } from '../storage/challengeStorage';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { typography } from '../theme/typography';
 import { Challenge, Difficulty } from '../types/challenge';
 
 interface DifficultyScreenProps {
@@ -30,22 +29,34 @@ export const DifficultyScreen: React.FC<DifficultyScreenProps> = ({
     onSelectDifficulty(selectedDifficulty, challenge);
   };
 
+  const getDifficultyTip = () => {
+    switch (selectedDifficulty) {
+      case 'beginner':
+        return 'Great choice! Short, crisp sentences perfect for warming up your articulation and pronunciation.';
+      case 'intermediate':
+        return 'Awesome! Longer conversational sentences designed to train your speaking rhythm and sentence linking.';
+      case 'advanced':
+        return 'Challenging! Complex expressions and rich vocabulary for native-level fluency and pacing.';
+    }
+  };
+
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <Header onBack={onBack} title="Difficulty Level" />
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 6, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.headerSection}>
-          <Text style={styles.title}>Select Today's Challenge Level</Text>
-          <Text style={styles.subtitle}>
-            Choose the difficulty that matches your speaking goals today.
+        <View className="mb-3.5">
+          <Text className="text-xl font-extrabold text-slate-900 mb-1">Select Today's Level</Text>
+          <Text className="text-xs text-slate-500 font-medium">
+            Choose the pace that matches your speaking comfort today.
           </Text>
         </View>
 
-        <View style={styles.cardsContainer}>
+        {/* 3 Difficulty Cards */}
+        <View className="gap-0.5 mb-3">
           <DifficultyCard
             difficulty="beginner"
             title="Beginner"
@@ -73,58 +84,42 @@ export const DifficultyScreen: React.FC<DifficultyScreenProps> = ({
             onSelect={setSelectedDifficulty}
           />
         </View>
+
+        {/* Dynamic Coach Mascot Guidance */}
+        <MascotMessage
+          mood="encouraging"
+          title="Coach Tip"
+          message={getDifficultyTip()}
+          size="sm"
+          className="mb-3"
+        />
+
+        {/* Training Benefits Banner */}
+        <View className="bg-indigo-50/70 rounded-2xl p-3.5 border border-indigo-100/80 flex-row items-center gap-3">
+          <View className="w-9 h-9 rounded-full bg-white items-center justify-center shadow-sm">
+            <Ionicons name="sparkles" size={18} color="#4F46E5" />
+          </View>
+          <View className="flex-1">
+            <Text className="text-xs font-bold text-indigo-900 leading-4">
+              Daily Habit Building
+            </Text>
+            <Text className="text-[11px] text-indigo-700 leading-4 mt-0.5">
+              Completing any level counts toward your consecutive day speaking streak!
+            </Text>
+          </View>
+        </View>
       </ScrollView>
 
       {/* Fixed Bottom CTA */}
-      <View style={styles.bottomBar}>
+      <View className="bg-white px-5 pt-3.5 pb-5 border-t border-slate-200 shadow-lg">
         <Button
-          title="Continue"
+          title="Continue to Challenge"
           onPress={handleContinue}
           variant="primary"
           size="lg"
+          icon={<Ionicons name="arrow-forward" size={18} color="#FFFFFF" />}
         />
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollContent: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.xxl,
-  },
-  headerSection: {
-    marginBottom: spacing.lg,
-    marginTop: spacing.xs,
-  },
-  title: {
-    ...typography.h2,
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
-  },
-  subtitle: {
-    ...typography.body,
-    color: colors.textSecondary,
-  },
-  cardsContainer: {
-    marginTop: spacing.sm,
-  },
-  bottomBar: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: colors.cardBorder,
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-});

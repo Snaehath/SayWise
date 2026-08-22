@@ -1,8 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { typography } from '../theme/typography';
+import { Animated, Easing, Text, View } from 'react-native';
 
 interface RecordingVisualizerProps {
   durationSec: number;
@@ -97,13 +94,13 @@ export const RecordingVisualizer: React.FC<RecordingVisualizerProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View className="items-center justify-center py-4">
       {/* Top Status Tag */}
-      <View style={styles.statusRow}>
-        <View style={styles.dotContainer}>
+      <View className="flex-row items-center bg-red-50 px-3 py-1.5 rounded-full mb-2">
+        <View className="w-4 h-4 items-center justify-center mr-1.5">
           <Animated.View
+            className="absolute w-4 h-4 rounded-full bg-red-500"
             style={[
-              styles.pulseRing,
               {
                 transform: [{ scale: ringScaleAnim }],
                 opacity: ringOpacityAnim,
@@ -111,94 +108,26 @@ export const RecordingVisualizer: React.FC<RecordingVisualizerProps> = ({
             ]}
           />
           <Animated.View
-            style={[
-              styles.recordingDot,
-              { transform: [{ scale: pulseAnim }] },
-            ]}
+            className="w-2 h-2 rounded-full bg-red-500"
+            style={[{ transform: [{ scale: pulseAnim }] }]}
           />
         </View>
-        <Text style={styles.statusText}>Recording...</Text>
+        <Text className="text-[11px] font-bold uppercase tracking-wider text-red-700">Recording...</Text>
       </View>
 
       {/* Elapsed Timer Display */}
-      <Text style={styles.timerText}>{formatTime(durationSec)}</Text>
+      <Text className="text-3xl font-bold text-slate-900 my-1 font-mono">{formatTime(durationSec)}</Text>
 
       {/* Animated Waveform Sound Bars */}
-      <View style={styles.waveformContainer}>
+      <View className="flex-row items-center justify-center h-12 gap-1.5 mt-1">
         {barHeights.map((animHeight, index) => (
           <Animated.View
             key={index}
-            style={[
-              styles.waveBar,
-              {
-                height: animHeight,
-              },
-            ]}
+            className="w-1 bg-red-500 rounded-sm"
+            style={[{ height: animHeight }]}
           />
         ))}
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.md,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.recordingLight,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: spacing.roundPill,
-    marginBottom: spacing.sm,
-  },
-  dotContainer: {
-    width: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 6,
-  },
-  pulseRing: {
-    position: 'absolute',
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: colors.recording,
-  },
-  recordingDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.recording,
-  },
-  statusText: {
-    ...typography.badge,
-    fontSize: 11,
-    color: colors.recordingDark,
-  },
-  timerText: {
-    fontSize: 32,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
-    color: colors.textPrimary,
-    marginVertical: spacing.xs,
-  },
-  waveformContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 48,
-    gap: 5,
-    marginTop: spacing.xs,
-  },
-  waveBar: {
-    width: 4,
-    backgroundColor: colors.recording,
-    borderRadius: 2,
-  },
-});

@@ -1,19 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Animated,
-  Easing,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Animated, Image, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
 import { analysisService } from '../services/analysisService';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { typography } from '../theme/typography';
 import { Challenge } from '../types/challenge';
 import { AnalysisResult } from '../types/result';
 
@@ -26,11 +16,11 @@ interface AnalysisScreenProps {
 }
 
 const ROTATING_MESSAGES = [
-  'Analyzing your reading...',
-  'Checking pronunciation & articulation...',
-  'Looking at your pacing and pauses...',
-  'Evaluating overall speaking flow...',
-  'Preparing your personalized feedback...',
+  'Milo is tuning in to your voice...',
+  'Evaluating pronunciation clarity...',
+  'Measuring natural speaking rhythm...',
+  'Checking syllable accuracy & pacing...',
+  'Polishing your speech feedback...',
 ];
 
 export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
@@ -46,43 +36,54 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
   const [isRetrying, setIsRetrying] = useState(false);
 
   // Animations
-  const spinAnim = useRef(new Animated.Value(0)).current;
   const pulseRingAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const mascotFloatAnim = useRef(new Animated.Value(0)).current;
 
+  // Pulse & float animation
   useEffect(() => {
-    // Spin loop
-    const spinLoop = Animated.loop(
-      Animated.timing(spinAnim, {
-        toValue: 1,
-        duration: 3000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    );
-    spinLoop.start();
-
-    // Pulse loop
     const pulseLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseRingAnim, {
-          toValue: 1.3,
+          toValue: 1.25,
           duration: 1200,
-          easing: Easing.out(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(pulseRingAnim, {
           toValue: 1,
           duration: 1200,
-          easing: Easing.in(Easing.ease),
           useNativeDriver: true,
         }),
       ])
     );
-    pulseLoop.start();
 
-    // Message rotation
-    const messageInterval = setInterval(() => {
+    const floatLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(mascotFloatAnim, {
+          toValue: -8,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(mascotFloatAnim, {
+          toValue: 0,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    pulseLoop.start();
+    floatLoop.start();
+
+    return () => {
+      pulseLoop.stop();
+      floatLoop.stop();
+    };
+  }, []);
+
+  // Rotate messages every 1.8s
+  useEffect(() => {
+    const interval = setInterval(() => {
       Animated.sequence([
         Animated.timing(fadeAnim, {
           toValue: 0,
@@ -99,13 +100,10 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
       setCurrentMessageIndex((prev) => (prev + 1) % ROTATING_MESSAGES.length);
     }, 1800);
 
-    return () => {
-      spinLoop.stop();
-      pulseLoop.stop();
-      clearInterval(messageInterval);
-    };
+    return () => clearInterval(interval);
   }, []);
 
+  // Run real Gemini audio analysis
   const runAnalysis = async () => {
     setHasError(false);
     setIsRetrying(true);
@@ -114,7 +112,7 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
       const result = await analysisService.analyzeRecording(audioPath, challenge, durationSec);
       onAnalysisSuccess(result);
     } catch (err) {
-      console.warn('Speech analysis failed:', err);
+      console.warn('Speech analysis failure:', err);
       setHasError(true);
     } finally {
       setIsRetrying(false);
@@ -125,67 +123,70 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
     runAnalysis();
   }, []);
 
-  const spin = spinAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <View style={styles.content}>
-        {/* Animated Scanner Graphic */}
-        <View style={styles.graphicContainer}>
+    <View
+      className="flex-1 bg-slate-50 justify-center items-center"
+      style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+    >
+      <View className="w-full px-8 items-center">
+        {/* Animated Listening Mascot Graphic */}
+        <View className="w-44 h-44 items-center justify-center mb-6">
           <Animated.View
+            className="absolute w-36 h-36 rounded-full bg-indigo-100/70"
             style={[
-              styles.pulseRing,
               {
                 transform: [{ scale: pulseRingAnim }],
               },
             ]}
           />
-          <View style={styles.iconCircle}>
-            <Animated.View style={{ transform: [{ rotate: spin }] }}>
-              <Ionicons name="sparkles" size={36} color={colors.primary} />
-            </Animated.View>
-          </View>
+          <Animated.View
+            style={{
+              transform: [{ translateY: mascotFloatAnim }],
+            }}
+            className="w-32 h-32 rounded-full bg-white border-2 border-indigo-100 p-1 items-center justify-center shadow-lg shadow-indigo-500/20 overflow-hidden"
+          >
+            <Image
+              source={require('../../assets/mascot/milo_listening.png')}
+              className="w-full h-full rounded-full"
+              resizeMode="cover"
+            />
+          </Animated.View>
         </View>
 
         {/* Message and Status */}
         {hasError ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorHeading}>Analysis Failed</Text>
-            <Text style={styles.errorDescription}>
-              We couldn't analyze your recording. Please try again.
+          <View className="items-center w-full">
+            <Text className="text-xl font-bold text-red-600 mb-1">Analysis Notice</Text>
+            <Text className="text-sm text-slate-500 text-center mb-6">
+              We couldn't reach the evaluation server. Please try again.
             </Text>
-            <View style={styles.errorActions}>
+            <View className="w-full gap-2">
               <Button
                 title="Retry Analysis"
                 onPress={runAnalysis}
                 variant="primary"
                 loading={isRetrying}
-                style={{ marginBottom: spacing.sm, width: '100%' }}
               />
               <Button
                 title="Cancel & Re-record"
                 onPress={onCancel}
                 variant="ghost"
-                style={{ width: '100%' }}
               />
             </View>
           </View>
         ) : (
-          <View style={styles.statusContainer}>
-            <Animated.Text style={[styles.rotatingMessage, { opacity: fadeAnim }]}>
+          <View className="items-center w-full">
+            <Animated.Text className="text-2xl font-extrabold text-slate-900 text-center min-h-[64px] mb-2 leading-8" style={{ opacity: fadeAnim }}>
               {ROTATING_MESSAGES[currentMessageIndex]}
             </Animated.Text>
 
-            <Text style={styles.challengeContext}>
+            <Text className="text-sm text-slate-600 text-center mb-6 font-medium">
               Evaluating reading for "{challenge.title}"
             </Text>
 
-            <View style={styles.indicatorRow}>
-              <ActivityIndicator size="small" color={colors.primary} />
-              <Text style={styles.indicatorText}>Processing audio stream...</Text>
+            <View className="flex-row items-center gap-2 bg-white px-5 py-2.5 rounded-full border border-slate-200 shadow-sm">
+              <ActivityIndicator size="small" color="#4F46E5" />
+              <Text className="text-sm font-semibold text-slate-700">Live AI Speech Calibrating...</Text>
             </View>
           </View>
         )}
@@ -193,98 +194,3 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  content: {
-    width: '100%',
-    paddingHorizontal: spacing.xl,
-    alignItems: 'center',
-  },
-  graphicContainer: {
-    width: 140,
-    height: 140,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.xxl,
-  },
-  pulseRing: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: colors.primaryLight,
-  },
-  iconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.surface,
-    borderWidth: 2,
-    borderColor: colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  statusContainer: {
-    alignItems: 'center',
-    width: '100%',
-  },
-  rotatingMessage: {
-    ...typography.h2,
-    fontSize: 20,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    minHeight: 56,
-    marginBottom: spacing.xs,
-  },
-  challengeContext: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: spacing.xl,
-  },
-  indicatorRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.surface,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: spacing.roundPill,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-  },
-  indicatorText: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    fontWeight: '600',
-  },
-  errorContainer: {
-    alignItems: 'center',
-    width: '100%',
-  },
-  errorHeading: {
-    ...typography.h2,
-    color: colors.recording,
-    marginBottom: spacing.xs,
-  },
-  errorDescription: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: spacing.xl,
-  },
-  errorActions: {
-    width: '100%',
-  },
-});

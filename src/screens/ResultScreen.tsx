@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
 import { Header } from '../components/Header';
+import { MascotMessage } from '../components/MascotMessage';
 import { ScoreCard } from '../components/ScoreCard';
 import { recordingService } from '../services/recordingService';
 import { challengeStorage } from '../storage/challengeStorage';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { typography } from '../theme/typography';
 import { Challenge } from '../types/challenge';
 import { AnalysisResult, ChallengeResult } from '../types/result';
 
@@ -34,60 +32,103 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   const handleCompleteChallenge = async () => {
     setIsSaving(true);
 
+    const challengeResult: ChallengeResult = {
+      challengeId: challenge.id,
+      challengeTitle: challenge.title,
+      difficulty: challenge.difficulty,
+      completedAt: new Date().toISOString(),
+      overallScore: result.overallScore,
+      pronunciationScore: result.pronunciationScore,
+      accuracyScore: result.accuracyScore,
+      fluencyScore: result.fluencyScore,
+      pacingScore: result.pacingScore,
+      feedback: result.feedback,
+    };
+
     try {
-      const challengeResult: ChallengeResult = {
-        challengeId: challenge.id,
-        challengeTitle: challenge.title,
-        difficulty: challenge.difficulty,
-        completedAt: new Date().toISOString(),
-        overallScore: result.overallScore,
-        pronunciationScore: result.pronunciationScore,
-        accuracyScore: result.accuracyScore,
-        fluencyScore: result.fluencyScore,
-        pacingScore: result.pacingScore,
-        feedback: result.feedback,
-      };
-
-      // 1. Save structured result in MMKV
       challengeStorage.saveChallengeResult(challengeResult);
-
-      // 2. Safely delete temporary audio file from cache
-      await recordingService.deleteTemporaryAudio(audioPath);
-
-      // 3. Move to Completion Screen
-      onComplete(challengeResult);
-    } catch (err) {
-      console.warn('Error completing challenge:', err);
-    } finally {
-      setIsSaving(false);
+    } catch (storageErr) {
+      console.warn('Storage save warning:', storageErr);
     }
+
+    try {
+      await recordingService.deleteTemporaryAudio(audioPath);
+    } catch (audioErr) {
+      console.warn('Audio delete warning:', audioErr);
+    }
+
+    setIsSaving(false);
+    onComplete(challengeResult);
   };
 
   const getDifficultyTheme = () => {
     switch (challenge.difficulty) {
       case 'beginner':
-        return { bg: colors.beginnerBg, text: colors.beginner, label: 'Beginner' };
+        return { bgClass: 'bg-emerald-50', textClass: 'text-emerald-700', label: 'Beginner' };
       case 'intermediate':
-        return { bg: colors.intermediateBg, text: colors.intermediate, label: 'Intermediate' };
+        return { bgClass: 'bg-blue-50', textClass: 'text-blue-700', label: 'Intermediate' };
       case 'advanced':
-        return { bg: colors.advancedBg, text: colors.advanced, label: 'Advanced' };
+        return { bgClass: 'bg-purple-50', textClass: 'text-purple-700', label: 'Advanced' };
     }
   };
 
   const difficultyTheme = getDifficultyTheme();
 
+  const getEmotionalHeadline = (score: number) => {
+    if (score >= 90) return { title: 'Outstanding Speech! 🌟', mood: 'celebrating' as const };
+    if (score >= 80) return { title: 'Impressive Cadence! 🚀', mood: 'celebrating' as const };
+    if (score >= 70) return { title: 'Great Rhythm & Flow! 👏', mood: 'encouraging' as const };
+    return { title: 'Solid Practice Session! 💪', mood: 'encouraging' as const };
+  };
+
+  const headline = getEmotionalHeadline(result.overallScore);
+
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <Header
         title="Your Result"
         onBack={onBackToHome}
       />
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Score Card with Breakdown */}
+        {/* Challenge & AI Header Row */}
+        <View className="flex-row items-center justify-between bg-white rounded-2xl px-4 py-2.5 border border-slate-200 shadow-sm mb-3">
+          <View className="flex-1 pr-2">
+            <Text className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">CHALLENGE</Text>
+            <Text className="text-base font-extrabold text-slate-900" numberOfLines={1}>
+              {challenge.title}
+            </Text>
+          </View>
+          <View className="flex-row items-center gap-2">
+            <View className={`px-2.5 py-1 rounded-full ${difficultyTheme.bgClass}`}>
+              <Text className={`text-xs font-bold uppercase ${difficultyTheme.textClass}`}>
+                {difficultyTheme.label}
+              </Text>
+            </View>
+            <View className="flex-row items-center bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-100">
+              <Ionicons name="sparkles" size={12} color="#4F46E5" style={{ marginRight: 4 }} />
+              <Text className="text-xs font-bold text-indigo-600">AI Verified</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Mascot Emotional Reaction */}
+        <MascotMessage
+          mood={headline.mood}
+          title={headline.title}
+          message={
+            result.overallScore >= 85
+              ? `You spoke with great confidence! Your natural flow is shining through.`
+              : `Nice work exercising your vocal chords! Daily consistency is your secret weapon.`
+          }
+          size="sm"
+          className="mb-3"
+        />
+
+        {/* Compact Score Dashboard Card */}
         <ScoreCard
           overallScore={result.overallScore}
           pronunciationScore={result.pronunciationScore}
@@ -96,182 +137,58 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
           pacingScore={result.pacingScore}
         />
 
-        {/* AI Coaching Feedback */}
-        <View style={styles.sectionCard}>
-          <View style={styles.sectionHeaderRow}>
-            <Ionicons name="chatbubbles-outline" size={20} color={colors.primary} />
-            <Text style={styles.sectionTitle}>Speaking Feedback</Text>
+        {/* AI Coaching Feedback Card */}
+        <View className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm mb-3">
+          <View className="flex-row items-center gap-2 mb-2">
+            <Ionicons name="chatbubbles-outline" size={20} color="#4F46E5" />
+            <Text className="text-base font-bold text-slate-900">Coach Feedback</Text>
           </View>
-          <Text style={styles.feedbackText}>{result.feedback}</Text>
+          <Text className="text-sm text-slate-800 leading-6 mb-3">{result.feedback}</Text>
 
-          {/* Strengths */}
-          {result.strengths && result.strengths.length > 0 && (
-            <View style={styles.bulletSection}>
-              <Text style={styles.subheading}>Key Strengths</Text>
-              {result.strengths.map((item, index) => (
-                <View key={index} style={styles.bulletItem}>
-                  <Ionicons name="checkmark-circle" size={16} color={colors.success} style={{ marginTop: 2 }} />
-                  <Text style={styles.bulletText}>{item}</Text>
-                </View>
-              ))}
-            </View>
-          )}
+          {/* Strengths & Improvements */}
+          <View className="gap-3 pt-3 border-t border-slate-100">
+            {result.strengths && result.strengths.length > 0 && (
+              <View>
+                <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                  Key Strengths
+                </Text>
+                {result.strengths.map((item, index) => (
+                  <View key={index} className="flex-row items-start gap-2 mb-1.5">
+                    <Ionicons name="checkmark-circle" size={16} color="#10B981" style={{ marginTop: 2 }} />
+                    <Text className="text-sm text-slate-700 flex-1 leading-5">{item}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
 
-          {/* Improvements */}
-          {result.improvements && result.improvements.length > 0 && (
-            <View style={styles.bulletSection}>
-              <Text style={styles.subheading}>Areas for Improvement</Text>
-              {result.improvements.map((item, index) => (
-                <View key={index} style={styles.bulletItem}>
-                  <Ionicons name="arrow-up-circle" size={16} color={colors.intermediate} style={{ marginTop: 2 }} />
-                  <Text style={styles.bulletText}>{item}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
-
-        {/* Challenge Summary Meta */}
-        <View style={styles.metaCard}>
-          <View style={styles.metaLeft}>
-            <Text style={styles.metaLabel}>CHALLENGE</Text>
-            <Text style={styles.metaTitle}>{challenge.title}</Text>
-          </View>
-          <View style={[styles.diffBadge, { backgroundColor: difficultyTheme.bg }]}>
-            <Text style={[styles.diffBadgeText, { color: difficultyTheme.text }]}>
-              {difficultyTheme.label}
-            </Text>
+            {result.improvements && result.improvements.length > 0 && (
+              <View>
+                <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                  Areas for Improvement
+                </Text>
+                {result.improvements.map((item, index) => (
+                  <View key={index} className="flex-row items-start gap-2 mb-1.5">
+                    <Ionicons name="arrow-up-circle" size={16} color="#3B82F6" style={{ marginTop: 2 }} />
+                    <Text className="text-sm text-slate-700 flex-1 leading-5">{item}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
         </View>
       </ScrollView>
 
       {/* Bottom Complete CTA */}
-      <View style={styles.bottomBar}>
+      <View className="bg-white px-4 pt-3 pb-5 border-t border-slate-200 shadow-lg">
         <Button
           title="Complete Challenge"
           onPress={handleCompleteChallenge}
           variant="primary"
           size="lg"
           loading={isSaving}
-          icon={<Ionicons name="checkmark-done" size={20} color={colors.textInverse} />}
+          icon={<Ionicons name="checkmark-done" size={20} color="#FFFFFF" />}
         />
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollContent: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.xxl,
-  },
-  sectionCard: {
-    backgroundColor: colors.surface,
-    borderRadius: spacing.roundLarge,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-    marginBottom: spacing.lg,
-  },
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  sectionTitle: {
-    ...typography.h3,
-    color: colors.textPrimary,
-  },
-  feedbackText: {
-    ...typography.body,
-    color: colors.textPrimary,
-    lineHeight: 24,
-    marginBottom: spacing.md,
-  },
-  bulletSection: {
-    marginTop: spacing.sm,
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.surfaceSubtle,
-  },
-  subheading: {
-    ...typography.caption,
-    fontWeight: '700',
-    color: colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: spacing.sm,
-  },
-  bulletItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-    marginBottom: 6,
-  },
-  bulletText: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-    flex: 1,
-    lineHeight: 20,
-  },
-  metaCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.surface,
-    borderRadius: spacing.roundMedium,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    marginBottom: spacing.lg,
-  },
-  metaLeft: {
-    flex: 1,
-  },
-  metaLabel: {
-    ...typography.caption,
-    color: colors.textMuted,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  metaTitle: {
-    ...typography.body,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  diffBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: spacing.roundPill,
-  },
-  diffBadgeText: {
-    ...typography.caption,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  bottomBar: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: colors.cardBorder,
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-});

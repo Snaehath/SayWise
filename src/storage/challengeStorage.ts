@@ -9,6 +9,7 @@ const KEYS = {
   TODAY_RESULT: 'saywise.today_result',
   COMPLETION_HISTORY: 'saywise.completion_history',
   ONBOARDING_SEEN: 'saywise.onboarding_seen',
+  TOTAL_WORDS_SPOKEN: 'saywise.total_words_spoken',
 };
 
 interface IMMKVInstance {
@@ -119,6 +120,14 @@ export function getTodayDateString(): string {
   return `${year}-${month}-${day}`;
 }
 
+export interface DayStreakItem {
+  dayName: string;
+  shortLabel: string;
+  dateStr: string;
+  isToday: boolean;
+  completed: boolean;
+}
+
 export const challengeStorage = {
   /**
    * Selected Difficulty
@@ -184,10 +193,36 @@ export const challengeStorage = {
     storage.set(KEYS.TODAY_RESULT, JSON.stringify(result));
     storage.set(KEYS.ONBOARDING_SEEN, 'true');
 
+    // Estimate words in this session (approx 25 words per challenge)
+    const currentWords = challengeStorage.getTotalWordsSpoken();
+    const wordsInSession = result.difficulty === 'advanced' ? 45 : result.difficulty === 'intermediate' ? 35 : 25;
+    storage.set(KEYS.TOTAL_WORDS_SPOKEN, String(currentWords + wordsInSession));
+
     // Append to history
     const existingHistory = challengeStorage.getHistory();
     const updatedHistory = [result, ...existingHistory.filter((h) => h.completedAt !== result.completedAt)];
     storage.set(KEYS.COMPLETION_HISTORY, JSON.stringify(updatedHistory));
+  },
+
+  /**
+   * Total words spoken metric
+   */
+  getTotalWordsSpoken(): number {
+    const val = storage.getString(KEYS.TOTAL_WORDS_SPOKEN);
+    if (val) {
+      const parsed = parseInt(val, 10);
+      if (!isNaN(parsed)) return parsed;
+    }
+    const history = challengeStorage.getHistory();
+    return history.length * 30; // fallback calculation
+  },
+
+  /**
+   * Total minutes practiced
+   */
+  getTotalMinutesPracticed(): number {
+    const history = challengeStorage.getHistory();
+    return Math.max(1, Math.round(history.length * 2));
   },
 
   /**
@@ -201,6 +236,48 @@ export const challengeStorage = {
     } catch {
       return [];
     }
+  },
+
+  /**
+   * Weekly streak matrix for Mon - Sun of the current week
+   */
+  getWeeklyStreakMatrix(): DayStreakItem[] {
+    const history = challengeStorage.getHistory();
+    const completedDateSet = new Set<string>();
+    history.forEach((h) => {
+      if (h.completedAt) {
+        completedDateSet.add(h.completedAt.split('T')[0]);
+      }
+    });
+
+    const now = new Date();
+    const todayStr = getTodayDateString();
+    // Get Monday of current week
+    const currentDayOfWeek = now.getDay(); // 0 is Sunday, 1 is Monday
+    const distanceToMonday = (currentDayOfWeek + 6) % 7; // distance back to Monday
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - distanceToMonday);
+
+    const weekDays: DayStreakItem[] = [];
+    const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    const dayFullNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    for (let i = 0; i < 7; i++) {
+      const dayDate = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+      const year = dayDate.getFullYear();
+      const month = String(dayDate.getMonth() + 1).padStart(2, '0');
+      const day = String(dayDate.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+
+      weekDays.push({
+        dayName: dayFullNames[i],
+        shortLabel: dayLabels[i],
+        dateStr,
+        isToday: dateStr === todayStr,
+        completed: completedDateSet.has(dateStr),
+      });
+    }
+
+    return weekDays;
   },
 
   /**
@@ -275,5 +352,6 @@ export const challengeStorage = {
     storage.delete(KEYS.SELECTED_DIFFICULTY);
     storage.delete(KEYS.COMPLETION_HISTORY);
     storage.delete(KEYS.ONBOARDING_SEEN);
+    storage.delete(KEYS.TOTAL_WORDS_SPOKEN);
   },
 };

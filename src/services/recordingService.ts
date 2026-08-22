@@ -33,28 +33,30 @@ export const recordingService = {
   },
 
   /**
-   * Safely delete a temporary audio file from cache/filesystem using the modern Expo SDK 54 File API
+   * Safely delete a temporary audio file from cache/filesystem
    */
   async deleteTemporaryAudio(audioPath: string | null | undefined): Promise<void> {
     if (!audioPath) return;
     try {
-      if (audioPath.startsWith('file://') || audioPath.startsWith('/')) {
+      if (typeof File !== 'undefined') {
         const file = new File(audioPath);
-        if (file.exists) {
+        if (file && typeof file.delete === 'function') {
           file.delete();
+          return;
         }
       }
-    } catch (err) {
-      // If modern API encounters an issue, attempt legacy fallback
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const LegacyFileSystem = require('expo-file-system/legacy');
-        if (LegacyFileSystem && typeof LegacyFileSystem.deleteAsync === 'function') {
-          await LegacyFileSystem.deleteAsync(audioPath, { idempotent: true });
-        }
-      } catch {
-        // Safe silent fallback for temporary cache
+    } catch {
+      // Safe fallback
+    }
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const LegacyFileSystem = require('expo-file-system/legacy');
+      if (LegacyFileSystem && typeof LegacyFileSystem.deleteAsync === 'function') {
+        await LegacyFileSystem.deleteAsync(audioPath, { idempotent: true });
       }
+    } catch {
+      // Safe silent fallback for temporary cache
     }
   },
 };

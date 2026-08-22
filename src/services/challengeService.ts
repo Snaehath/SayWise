@@ -1,4 +1,4 @@
-import { challenges } from '../data/challenges';
+import { challenges, NanoQwenChallengeEngine } from '../data/challenges';
 import { challengeStorage } from '../storage/challengeStorage';
 import { Challenge, Difficulty } from '../types/challenge';
 
@@ -30,13 +30,17 @@ export const challengeService = {
   },
 
   /**
+   * Generate a fresh, on-the-fly challenge dynamically
+   */
+  generateNewChallenge(difficulty: Difficulty): Challenge {
+    return NanoQwenChallengeEngine.generateChallenge(difficulty);
+  },
+
+  /**
    * Get today's challenge for the given difficulty
    */
   getTodayChallenge(difficulty: Difficulty): Challenge {
     const pool = this.getChallengesByDifficulty(difficulty);
-    if (pool.length === 0) {
-      return challenges[0];
-    }
 
     // Check if we have an active today's challenge ID already stored
     const storedId = challengeStorage.getTodayChallengeId();
@@ -45,7 +49,13 @@ export const challengeService = {
       if (stored) return stored;
     }
 
-    // Deterministic selection based on day of year
+    if (pool.length === 0) {
+      const generated = NanoQwenChallengeEngine.generateChallenge(difficulty);
+      challengeStorage.setTodayChallengeId(generated.id);
+      return generated;
+    }
+
+    // Deterministic selection based on day of year from dynamic manifold
     const index = getDayOfYearIndex(pool.length);
     const selected = pool[index] ?? pool[0];
 

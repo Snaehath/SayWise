@@ -1,19 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
-import { challengeStorage } from '../storage/challengeStorage';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { typography } from '../theme/typography';
+import { MascotMessage } from '../components/MascotMessage';
+import { WeeklyStreakTracker } from '../components/WeeklyStreakTracker';
+import { challengeStorage, DayStreakItem } from '../storage/challengeStorage';
 import { ChallengeResult } from '../types/result';
 
 interface WelcomeScreenProps {
@@ -31,6 +23,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const [streakCount, setStreakCount] = useState(0);
   const [isNewUser, setIsNewUser] = useState(true);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [weekDays, setWeekDays] = useState<DayStreakItem[]>([]);
+  const [totalWords, setTotalWords] = useState(0);
+  const [totalMinutes, setTotalMinutes] = useState(0);
 
   const loadState = () => {
     const completed = challengeStorage.isCompletedToday();
@@ -38,11 +33,17 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     const streak = challengeStorage.getStreakCount();
     const hasSeen = challengeStorage.hasSeenOnboarding();
     const history = challengeStorage.getHistory();
+    const matrix = challengeStorage.getWeeklyStreakMatrix();
+    const words = challengeStorage.getTotalWordsSpoken();
+    const minutes = challengeStorage.getTotalMinutesPracticed();
 
     setIsCompletedToday(completed);
     setTodayResult(result);
     setStreakCount(streak);
     setIsNewUser(!hasSeen && history.length === 0);
+    setWeekDays(matrix);
+    setTotalWords(words);
+    setTotalMinutes(minutes);
   };
 
   useEffect(() => {
@@ -57,7 +58,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const handleResetDev = () => {
     Alert.alert(
       'Reset Daily Progress',
-      'This will clear today\'s completion state, streak, and onboarding state for testing.',
+      "This will clear today's completion state, streak, and onboarding state for testing.",
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -75,107 +76,124 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const selectedDiff = challengeStorage.getSelectedDifficulty() || 'beginner';
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{
+          paddingHorizontal: 18,
+          paddingTop: 8,
+          paddingBottom: 24,
+        }}
         showsVerticalScrollIndicator={false}
       >
         {/* Top Header with Brand & Streak Badge */}
-        <View style={styles.topHeader}>
-          <View style={styles.brandRow}>
-            <View style={styles.logoCircle}>
-              <Ionicons name="mic" size={20} color={colors.textInverse} />
+        <View className="flex-row items-center justify-between mb-4 mt-1">
+          <View className="flex-row items-center">
+            <View className="w-11 h-11 rounded-full bg-indigo-600 items-center justify-center shadow-md shadow-indigo-500/25 mr-3">
+              <Ionicons name="mic" size={22} color="#FFFFFF" />
             </View>
             <View>
-              <Text style={styles.brandTitle}>SayWise</Text>
-              <Text style={styles.brandSubtitle}>English Speaking</Text>
+              <Text className="text-2xl font-extrabold text-slate-900 leading-7">SayWise</Text>
+              <Text className="text-xs font-semibold text-slate-500">English Speaking</Text>
             </View>
           </View>
 
           {/* Day Streak Count Badge */}
           <View
-            style={[
-              styles.streakBadge,
-              streakCount > 0 ? styles.streakBadgeActive : styles.streakBadgeZero,
-            ]}
+            className={`flex-row items-center px-3.5 py-1.5 rounded-full border shadow-sm ${
+              streakCount > 0
+                ? 'bg-amber-50 border-amber-200'
+                : 'bg-indigo-50 border-indigo-100'
+            }`}
           >
             <Ionicons
               name={streakCount > 0 ? 'flame' : 'flash-outline'}
               size={16}
-              color={streakCount > 0 ? '#EA580C' : colors.primary}
-              style={{ marginRight: 4 }}
+              color={streakCount > 0 ? '#EA580C' : '#4F46E5'}
+              style={{ marginRight: 5 }}
             />
             <Text
-              style={[
-                styles.streakText,
-                { color: streakCount > 0 ? '#C2410C' : colors.primary },
-              ]}
+              className={`text-sm font-extrabold ${
+                streakCount > 0 ? 'text-amber-700' : 'text-indigo-600'
+              }`}
             >
               {streakCount > 0 ? `${streakCount} Day Streak` : '0 Day Streak'}
             </Text>
           </View>
         </View>
 
+        {/* Mascot Emotional Coach Greeting */}
+        <MascotMessage
+          mood={isCompletedToday ? 'celebrating' : 'encouraging'}
+          title={isCompletedToday ? 'Goal Complete! 🎉' : 'Daily Tip 🎙️'}
+          message={
+            isCompletedToday
+              ? `Great job today! Your speaking cadence is leveling up!`
+              : `2 focused minutes today builds natural speaking confidence.`
+          }
+          size="sm"
+          className="mb-3.5"
+        />
+
+        {/* 7-Day Habit & Streak Matrix */}
+        {weekDays.length > 0 && (
+          <WeeklyStreakTracker
+            streakCount={streakCount}
+            weekDays={weekDays}
+            className="mb-4"
+          />
+        )}
+
         {/* 1. NEW USER ONBOARDING HERO CARD */}
         {(isNewUser || showHowItWorks) && (
-          <View style={styles.heroCard}>
-            <View style={styles.heroTagRow}>
-              <View style={styles.heroTag}>
-                <Ionicons name="sparkles" size={13} color={colors.primary} style={{ marginRight: 4 }} />
-                <Text style={styles.heroTagText}>Daily Speaking Practice</Text>
+          <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-4">
+            <View className="flex-row justify-between items-center mb-2.5">
+              <View className="flex-row items-center bg-indigo-50 px-3 py-1 rounded-full">
+                <Ionicons name="sparkles" size={13} color="#4F46E5" style={{ marginRight: 4 }} />
+                <Text className="text-xs font-bold text-indigo-600">Daily Speaking Practice</Text>
               </View>
               {showHowItWorks && (
                 <Pressable onPress={() => setShowHowItWorks(false)} hitSlop={10}>
-                  <Ionicons name="close-circle-outline" size={20} color={colors.textMuted} />
+                  <Ionicons name="close-circle-outline" size={22} color="#94A3B8" />
                 </Pressable>
               )}
             </View>
 
-            <Text style={styles.heroHeading}>Speak with Confidence</Text>
-            <Text style={styles.heroSubtitle}>
+            <Text className="text-2xl font-extrabold text-slate-900 leading-8 mb-1.5">
+              Speak with Confidence
+            </Text>
+            <Text className="text-sm text-slate-600 leading-5 mb-4">
               Practice spoken English in just 2 minutes a day with instant AI feedback.
             </Text>
 
-            <View style={styles.stepsContainer}>
-              <View style={styles.stepRow}>
-                <View style={[styles.stepIconCircle, { backgroundColor: colors.beginnerBg }]}>
-                  <Ionicons name="book-outline" size={16} color={colors.beginner} />
+            <View className="gap-2.5 mb-4">
+              <View className="flex-row items-center bg-slate-50 py-3 px-3.5 rounded-2xl border border-slate-200">
+                <View className="w-8 h-8 rounded-full bg-emerald-50 items-center justify-center mr-3">
+                  <Ionicons name="book-outline" size={16} color="#10B981" />
                 </View>
-                <View style={styles.stepTextCol}>
-                  <Text style={styles.stepTitle}>Read Aloud</Text>
-                  <Text style={styles.stepDesc}>Curated daily paragraphs</Text>
-                </View>
-              </View>
-
-              <View style={styles.stepRow}>
-                <View style={[styles.stepIconCircle, { backgroundColor: colors.intermediateBg }]}>
-                  <Ionicons name="mic-outline" size={16} color={colors.intermediate} />
-                </View>
-                <View style={styles.stepTextCol}>
-                  <Text style={styles.stepTitle}>Voice Record</Text>
-                  <Text style={styles.stepDesc}>Live speech capture & analysis</Text>
+                <View className="flex-1">
+                  <Text className="text-base font-bold text-slate-900 leading-5">Read Aloud</Text>
+                  <Text className="text-xs text-slate-500 mt-0.5">Curated daily paragraphs</Text>
                 </View>
               </View>
 
-              <View style={styles.stepRow}>
-                <View style={[styles.stepIconCircle, { backgroundColor: colors.advancedBg }]}>
-                  <Ionicons name="analytics-outline" size={16} color={colors.advanced} />
+              <View className="flex-row items-center bg-slate-50 py-3 px-3.5 rounded-2xl border border-slate-200">
+                <View className="w-8 h-8 rounded-full bg-blue-50 items-center justify-center mr-3">
+                  <Ionicons name="mic-outline" size={16} color="#3B82F6" />
                 </View>
-                <View style={styles.stepTextCol}>
-                  <Text style={styles.stepTitle}>Instant Feedback</Text>
-                  <Text style={styles.stepDesc}>Pronunciation, fluency & pacing scores</Text>
+                <View className="flex-1">
+                  <Text className="text-base font-bold text-slate-900 leading-5">Voice Record</Text>
+                  <Text className="text-xs text-slate-500 mt-0.5">Live speech capture & analysis</Text>
                 </View>
               </View>
             </View>
 
             {isNewUser && (
               <Button
-                title="Start Your First Challenge"
+                title="Start First Challenge"
                 onPress={handleStart}
                 variant="primary"
                 size="lg"
-                icon={<Ionicons name="arrow-forward" size={18} color={colors.textInverse} />}
-                style={{ marginTop: spacing.md }}
+                icon={<Ionicons name="arrow-forward" size={18} color="#FFFFFF" />}
               />
             )}
           </View>
@@ -186,32 +204,44 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           <>
             {isCompletedToday && todayResult ? (
               /* Completed Today State */
-              <View style={styles.completedCard}>
-                <View style={styles.completedHeader}>
-                  <View style={styles.checkBadge}>
-                    <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-                    <Text style={styles.completedStatusTitle}>Today's Goal Complete</Text>
+              <View className="bg-emerald-50/70 rounded-3xl p-5 border border-emerald-300 mb-4 shadow-sm">
+                <View className="flex-row justify-between items-center mb-2">
+                  <View className="flex-row items-center gap-2">
+                    <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+                    <Text className="text-lg font-bold text-emerald-900">Today's Goal Complete</Text>
                   </View>
-                  <View style={styles.scoreTag}>
-                    <Text style={styles.scoreTagText}>{todayResult.overallScore} / 100</Text>
+                  <View className="bg-white px-3 py-1 rounded-full border border-emerald-300 shadow-sm">
+                    <Text className="text-xs font-extrabold text-emerald-800">{todayResult.overallScore} / 100</Text>
                   </View>
                 </View>
-                <Text style={styles.completedChallengeName}>
+                <Text className="text-xl font-extrabold text-slate-900 my-1.5">
                   "{todayResult.challengeTitle}"
                 </Text>
-                <Text style={styles.completedNotice}>
+                <Text className="text-sm text-slate-700 mb-4 leading-5">
                   Great job keeping your {streakCount} day streak alive! Come back tomorrow for your next speaking challenge.
                 </Text>
 
-                <View style={styles.completedActions}>
+                {/* Growth Metric Stats Row */}
+                <View className="flex-row items-center gap-3 bg-white/80 rounded-2xl p-3 mb-4 border border-emerald-200">
+                  <View className="flex-1 items-center border-r border-slate-100 pr-2">
+                    <Text className="text-xs text-slate-500 font-semibold">Words Spoken</Text>
+                    <Text className="text-base font-extrabold text-indigo-600">~{totalWords}</Text>
+                  </View>
+                  <View className="flex-1 items-center">
+                    <Text className="text-xs text-slate-500 font-semibold">Minutes Practiced</Text>
+                    <Text className="text-base font-extrabold text-emerald-600">{totalMinutes} min</Text>
+                  </View>
+                </View>
+
+                <View className="flex-row items-center gap-3">
                   {onViewCompletedResult && (
                     <Button
                       title="View Result"
                       onPress={() => onViewCompletedResult(todayResult)}
                       variant="secondary"
                       size="md"
-                      icon={<Ionicons name="stats-chart-outline" size={16} color={colors.primary} />}
-                      style={{ flex: 1, marginRight: spacing.sm }}
+                      icon={<Ionicons name="stats-chart-outline" size={17} color="#4F46E5" />}
+                      className="flex-1"
                     />
                   )}
                   <Button
@@ -219,31 +249,31 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                     onPress={handleStart}
                     variant="primary"
                     size="md"
-                    icon={<Ionicons name="refresh" size={16} color={colors.textInverse} />}
-                    style={{ flex: 1 }}
+                    icon={<Ionicons name="refresh" size={17} color="#FFFFFF" />}
+                    className="flex-1"
                   />
                 </View>
               </View>
             ) : (
-              /* Ready for Daily Challenge (Direct, Low Friction) */
-              <View style={styles.directChallengeCard}>
-                <View style={styles.directHeaderRow}>
-                  <View style={styles.readyTag}>
-                    <View style={styles.readyDot} />
-                    <Text style={styles.readyTagText}>TODAY'S CHALLENGE</Text>
+              /* Ready for Daily Challenge (Generous Padding & Prominent Typography) */
+              <View className="bg-white rounded-3xl p-5 border-2 border-indigo-600 shadow-md shadow-indigo-500/10 mb-4">
+                <View className="flex-row justify-between items-center mb-2.5">
+                  <View className="flex-row items-center">
+                    <View className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2" />
+                    <Text className="text-xs font-bold tracking-wider text-emerald-700">TODAY'S CHALLENGE</Text>
                   </View>
-                  <View style={styles.levelPill}>
-                    <Text style={styles.levelPillText}>{selectedDiff}</Text>
+                  <View className="bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+                    <Text className="text-xs font-bold text-slate-600 capitalize">{selectedDiff}</Text>
                   </View>
                 </View>
 
-                <Text style={styles.directHeading}>
+                <Text className="text-2xl font-extrabold text-slate-900 leading-8 mb-2">
                   {streakCount > 0
                     ? `Keep your ${streakCount} day streak active!`
                     : 'Ready for today’s speaking practice?'}
                 </Text>
 
-                <Text style={styles.directSubtext}>
+                <Text className="text-sm text-slate-600 mb-5 leading-5">
                   Take 2 minutes to read your daily paragraph aloud and calibrate your pronunciation.
                 </Text>
 
@@ -252,7 +282,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                   onPress={handleStart}
                   variant="primary"
                   size="lg"
-                  icon={<Ionicons name="play" size={18} color={colors.textInverse} />}
+                  icon={<Ionicons name="play" size={18} color="#FFFFFF" />}
                 />
               </View>
             )}
@@ -261,19 +291,19 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             {!showHowItWorks && (
               <Pressable
                 onPress={() => setShowHowItWorks(true)}
-                style={styles.howItWorksButton}
+                className="flex-row items-center justify-center py-2 mb-2"
                 hitSlop={8}
               >
-                <Ionicons name="information-circle-outline" size={16} color={colors.textSecondary} style={{ marginRight: 6 }} />
-                <Text style={styles.howItWorksText}>How daily challenges work</Text>
+                <Ionicons name="information-circle-outline" size={17} color="#64748B" style={{ marginRight: 6 }} />
+                <Text className="text-sm font-semibold text-slate-600">How daily challenges work</Text>
               </Pressable>
             )}
           </>
         )}
 
-        {/* Motivational Slogan Section (Italic text only) */}
-        <View style={styles.sloganCard}>
-          <Text style={styles.sloganText}>
+        {/* Motivational Slogan Section */}
+        <View className="bg-white rounded-2xl py-3.5 px-4 border border-slate-200 shadow-sm my-2 items-center justify-center">
+          <Text className="text-sm text-slate-600 italic leading-5 text-center font-medium">
             {isCompletedToday
               ? '"Consistency is the mother of mastery. You showed up today — rest well and come back stronger tomorrow!"'
               : '"Clear speech begins with small daily habits. Just two focused minutes today builds natural confidence."'}
@@ -281,331 +311,13 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         </View>
 
         {/* Dev Reset Utility */}
-        <View style={styles.footerContainer}>
-          <Pressable onPress={handleResetDev} hitSlop={10} style={styles.resetButton}>
-            <Ionicons name="refresh-outline" size={13} color={colors.textMuted} style={{ marginRight: 4 }} />
-            <Text style={styles.resetButtonText}>Reset Progress & Onboarding (Dev Utility)</Text>
+        <View className="items-center mt-2">
+          <Pressable onPress={handleResetDev} hitSlop={10} className="flex-row items-center py-2 px-3">
+            <Ionicons name="refresh-outline" size={14} color="#94A3B8" style={{ marginRight: 5 }} />
+            <Text className="text-xs text-slate-400">Reset Progress & Onboarding (Dev Utility)</Text>
           </Pressable>
         </View>
       </ScrollView>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollContent: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.xl,
-  },
-  topHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.lg,
-    marginTop: spacing.xs,
-  },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logoCircle: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
-    marginRight: spacing.sm,
-  },
-  brandTitle: {
-    ...typography.h2,
-    fontSize: 20,
-    lineHeight: 24,
-    color: colors.textPrimary,
-  },
-  brandSubtitle: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    fontSize: 11,
-    fontWeight: '500',
-  },
-  streakBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: spacing.roundPill,
-    borderWidth: 1,
-  },
-  streakBadgeActive: {
-    backgroundColor: '#FFF7ED',
-    borderColor: '#FED7AA',
-  },
-  streakBadgeZero: {
-    backgroundColor: colors.primaryLight,
-    borderColor: '#E0E7FF',
-  },
-  streakText: {
-    ...typography.caption,
-    fontWeight: '800',
-    fontSize: 12,
-  },
-  heroCard: {
-    backgroundColor: colors.surface,
-    borderRadius: spacing.roundLarge,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 2,
-    marginBottom: spacing.lg,
-  },
-  heroTagRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  heroTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primaryLight,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: spacing.roundPill,
-  },
-  heroTagText: {
-    ...typography.caption,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  heroHeading: {
-    ...typography.h1,
-    fontSize: 22,
-    lineHeight: 28,
-    color: colors.textPrimary,
-    marginBottom: 4,
-  },
-  heroSubtitle: {
-    ...typography.body,
-    fontSize: 14,
-    color: colors.textSecondary,
-    lineHeight: 20,
-    marginBottom: spacing.md,
-  },
-  stepsContainer: {
-    gap: spacing.sm,
-  },
-  stepRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surfaceSubtle,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: spacing.roundMedium,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-  },
-  stepIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  stepTextCol: {
-    flex: 1,
-  },
-  stepTitle: {
-    ...typography.body,
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    lineHeight: 18,
-  },
-  stepDesc: {
-    ...typography.caption,
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 1,
-  },
-  directChallengeCard: {
-    backgroundColor: colors.surface,
-    borderRadius: spacing.roundLarge,
-    padding: spacing.lg,
-    borderWidth: 1.5,
-    borderColor: colors.primary,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
-    marginBottom: spacing.md,
-  },
-  directHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  readyTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  readyDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.success,
-    marginRight: 6,
-  },
-  readyTagText: {
-    ...typography.badge,
-    fontSize: 11,
-    color: colors.successDark,
-  },
-  levelPill: {
-    backgroundColor: colors.surfaceSubtle,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: spacing.roundPill,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-  },
-  levelPillText: {
-    ...typography.caption,
-    fontWeight: '700',
-    color: colors.textSecondary,
-    textTransform: 'capitalize',
-    fontSize: 11,
-  },
-  directHeading: {
-    ...typography.h2,
-    fontSize: 21,
-    lineHeight: 27,
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
-  },
-  directSubtext: {
-    ...typography.body,
-    color: colors.textSecondary,
-    marginBottom: spacing.lg,
-  },
-  completedCard: {
-    backgroundColor: colors.successLight,
-    borderRadius: spacing.roundLarge,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.success,
-    marginBottom: spacing.md,
-  },
-  completedHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.xs,
-  },
-  checkBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  completedStatusTitle: {
-    ...typography.h3,
-    fontSize: 16,
-    color: colors.successDark,
-  },
-  scoreTag: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: spacing.roundPill,
-    borderWidth: 1,
-    borderColor: colors.success,
-  },
-  scoreTagText: {
-    ...typography.caption,
-    fontWeight: '800',
-    color: colors.successDark,
-  },
-  completedChallengeName: {
-    ...typography.bodyLarge,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginVertical: spacing.xs,
-  },
-  completedNotice: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
-  },
-  completedActions: {
-    flexDirection: 'row',
-    marginTop: spacing.xs,
-  },
-  howItWorksButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  howItWorksText: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    fontWeight: '600',
-  },
-  sloganCard: {
-    backgroundColor: colors.surface,
-    borderRadius: spacing.roundLarge,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
-    marginTop: spacing.xs,
-    marginBottom: spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sloganText: {
-    ...typography.body,
-    fontSize: 14,
-    color: colors.textSecondary,
-    lineHeight: 22,
-    fontStyle: 'italic',
-    textAlign: 'center',
-  },
-  footerContainer: {
-    alignItems: 'center',
-    marginTop: spacing.sm,
-  },
-  resetButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-  },
-  resetButtonText: {
-    ...typography.caption,
-    color: colors.textMuted,
-  },
-});

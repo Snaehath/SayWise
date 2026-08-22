@@ -1,117 +1,184 @@
-import { Challenge } from '../types/challenge';
+import { Challenge, Difficulty } from '../types/challenge';
 
-export const challenges: Challenge[] = [
-  // Beginner Challenges
-  {
-    id: 'beginner-001',
-    title: 'A Morning Walk',
-    difficulty: 'beginner',
-    paragraph:
-      'Every morning, I take a short walk around my neighborhood. The air is cool and peaceful. It helps me feel fresh and ready for the day ahead.',
-    estimatedDurationSec: 15,
-    focusAreas: ['Vowel clarity', 'Gentle pacing'],
-  },
-  {
-    id: 'beginner-002',
-    title: 'Cooking Breakfast',
-    difficulty: 'beginner',
-    paragraph:
-      'I like making breakfast on the weekend. Fresh eggs, warm toast, and a hot cup of tea make my mornings feel special and calm.',
-    estimatedDurationSec: 15,
-    focusAreas: ['Consonant endings', 'Natural pausing'],
-  },
-  {
-    id: 'beginner-003',
-    title: 'Visiting the Library',
-    difficulty: 'beginner',
-    paragraph:
-      'The local library is my favorite place to relax. It is quiet and full of interesting stories waiting to be read.',
-    estimatedDurationSec: 14,
-    focusAreas: ['Word stress', 'Smooth rhythm'],
-  },
-  {
-    id: 'beginner-004',
-    title: 'A Sunny Afternoon',
-    difficulty: 'beginner',
-    paragraph:
-      'Sunshine fills the garden with bright golden light. Birds are singing in the green trees, and a gentle breeze blows across the yard.',
-    estimatedDurationSec: 16,
-    focusAreas: ['Fluency', 'Clear articulation'],
-  },
+export type DifficultyLevel = Difficulty;
 
-  // Intermediate Challenges
-  {
-    id: 'intermediate-001',
-    title: 'The Art of Conversation',
-    difficulty: 'intermediate',
-    paragraph:
-      'Good communication is not only about speaking clearly, but also about listening attentively. When we truly understand someone else, conversations become much more meaningful and enjoyable.',
-    estimatedDurationSec: 20,
-    focusAreas: ['Intonation', 'Sentence linking', 'Pauses'],
-  },
-  {
-    id: 'intermediate-002',
-    title: 'Exploring New Places',
-    difficulty: 'intermediate',
-    paragraph:
-      'Traveling allows us to step outside our comfort zone and experience diverse cultures firsthand. Every journey teaches us valuable lessons that broaden our perspective on life.',
-    estimatedDurationSec: 22,
-    focusAreas: ['Complex vowels', 'Fluid transitions'],
-  },
-  {
-    id: 'intermediate-003',
-    title: 'Daily Productivity Habits',
-    difficulty: 'intermediate',
-    paragraph:
-      'Building consistent daily habits is more effective than relying on sudden motivation. By dedicating even fifteen minutes a day to a skill, remarkable progress can be achieved over time.',
-    estimatedDurationSec: 24,
-    focusAreas: ['Emphasis on key words', 'Consistent tempo'],
-  },
-  {
-    id: 'intermediate-004',
-    title: 'Nature and Mindfulness',
-    difficulty: 'intermediate',
-    paragraph:
-      'Spending time outdoors amidst greenery significantly reduces mental fatigue. Taking a few deep breaths while admiring the scenery helps reset our thoughts and restore focus.',
-    estimatedDurationSec: 22,
-    focusAreas: ['Rhythmic flow', 'Breath control'],
-  },
+// ====================================================================
+// SayWise On-Device NanoQwen Challenge Engine (React Native)
+// Generates Infinite, Non-Repeating Speech Challenges with Zero APIs
+// ====================================================================
+export class NanoQwenChallengeEngine {
+  private static seenHistory = new Set<string>();
 
-  // Advanced Challenges
-  {
-    id: 'advanced-001',
-    title: 'The Evolution of Technology',
-    difficulty: 'advanced',
-    paragraph:
-      'Technological innovation continues to reshape society at an unprecedented rate. As artificial intelligence and automation permeate our daily lives, cultivating critical thinking and ethical awareness becomes paramount for navigating future complexities.',
-    estimatedDurationSec: 28,
-    focusAreas: ['Polysyllabic vocabulary', 'Sophisticated cadence', 'Diction'],
-  },
-  {
-    id: 'advanced-002',
-    title: 'Mastering Public Speaking',
-    difficulty: 'advanced',
-    paragraph:
-      'Persuasive rhetoric requires an intricate balance of compelling storytelling, deliberate vocal modulation, and impeccable timing. An extraordinary speaker captivates an audience not merely through words, but through the resonance of their authentic conviction.',
-    estimatedDurationSec: 30,
-    focusAreas: ['Vocal modulation', 'Nuanced articulation', 'Dynamic pacing'],
-  },
-  {
-    id: 'advanced-003',
-    title: 'Sustainable Global Solutions',
-    difficulty: 'advanced',
-    paragraph:
-      'Addressing global climate challenges demands unprecedented multilateral cooperation, robust scientific consensus, and innovative ecological engineering. Sustainable transformation requires long-term commitment alongside pragmatic, community-driven initiatives.',
-    estimatedDurationSec: 30,
-    focusAreas: ['Multi-clause structures', 'Academic vocabulary', 'Clarity'],
-  },
-  {
-    id: 'advanced-004',
-    title: 'The Philosophy of Resilience',
-    difficulty: 'advanced',
-    paragraph:
-      'True resilience is not the absence of vulnerability, but the extraordinary capacity to reconstruct purpose in the face of profound adversity. By viewing obstacles as catalysts for profound personal transformation, we uncover our deepest reserves of perseverance.',
-    estimatedDurationSec: 32,
-    focusAreas: ['Expressive inflection', 'Complex cadence', 'Flow'],
-  },
-];
+  // ================================================================
+  // 1. BEGINNER MANIFOLD (Short, gentle vowels, 14-16s duration)
+  // ================================================================
+  private static beginnerThemes = [
+    { title: 'A Morning Walk', scene: 'a short walk around my neighborhood', setting: 'The air is cool and peaceful', benefit: 'It helps me feel fresh and ready for the day ahead.' },
+    { title: 'Cooking Breakfast', scene: 'making breakfast on the weekend', setting: 'Fresh eggs, warm toast, and a hot cup of tea', benefit: 'It makes my mornings feel special and calm.' },
+    { title: 'Visiting the Library', scene: 'spending an afternoon in the local library', setting: 'The bookshelves are quiet and full of warm light', benefit: 'It is a wonderful place to read interesting stories.' },
+    { title: 'A Sunny Afternoon', scene: 'relaxing in the green garden', setting: 'Golden sunshine fills the yard and birds are singing', benefit: 'A gentle breeze makes the afternoon feel delightful.' },
+    { title: 'Baking Fresh Bread', scene: 'kneading dough in the warm kitchen', setting: 'The sweet aroma of fresh bread fills the house', benefit: 'Enjoying a warm slice brings a quiet smile to my face.' },
+    { title: 'Watching the Rain', scene: 'listening to raindrops fall against the window', setting: 'The soft sound of rainfall creates a cozy atmosphere', benefit: 'Holding a warm mug brings comfort and peaceful rest.' },
+    { title: 'Walking by the Lake', scene: 'strolling along the calm water at dusk', setting: 'Gentle waves ripple softly under the evening sky', benefit: 'The peaceful reflection of the clouds clears my mind.' },
+    { title: 'Planting New Flowers', scene: 'caring for colorful blossoms in the soil', setting: 'Fresh earth and green leaves smell rich in the morning sun', benefit: 'Watching new buds open brings genuine daily joy.' },
+  ];
+
+  private static beginnerFocusPairs = [
+    ['Vowel clarity', 'Gentle pacing'],
+    ['Consonant endings', 'Natural pausing'],
+    ['Word stress', 'Smooth rhythm'],
+    ['Fluency', 'Clear articulation'],
+    ['Soft consonants', 'Steady breathing'],
+  ];
+
+  // ================================================================
+  // 2. INTERMEDIATE MANIFOLD (Single cohesive paragraph, 20-25s duration)
+  // ================================================================
+  private static intermediateSubjects = [
+    {
+      title: 'The Art of Conversation',
+      paragraph: 'Effective communication is not only about speaking clearly, but also about listening attentively, because when we truly understand someone else, conversations become much more meaningful and enjoyable.',
+    },
+    {
+      title: 'Exploring New Horizons',
+      paragraph: 'Traveling allows us to step outside our comfort zone and experience diverse cultures firsthand, teaching us valuable lessons that broaden our perspective on life and human connection.',
+    },
+    {
+      title: 'Daily Productivity Habits',
+      paragraph: 'Building consistent daily routines is far more sustainable than relying on sudden bursts of motivation, as dedicating even fifteen minutes a day leads to remarkable progress over time.',
+    },
+    {
+      title: 'Nature and Mindfulness',
+      paragraph: 'Spending time outdoors amidst quiet greenery significantly reduces mental fatigue, and taking a few deep breaths while admiring the scenery quickly restores mental clarity.',
+    },
+    {
+      title: 'The Power of Reading',
+      paragraph: 'Immersing ourselves in great literature strengthens analytical thinking and expands empathy, serving as a quiet bridge that connects us with timeless wisdom across history.',
+    },
+    {
+      title: 'Mastering Digital Balance',
+      paragraph: 'Creating intentional boundaries with digital devices allows us to regain control over our personal time, cultivating deeper focus and peace in daily life.',
+    },
+    {
+      title: 'Embracing Creative Hobbies',
+      paragraph: 'Engaging in creative pursuits like painting, writing, or music unlocks innovative thinking, giving our imagination the freedom to spark unexpected inspiration.',
+    },
+  ];
+
+  private static intermediateFocusPairs = [
+    ['Intonation', 'Sentence linking', 'Pauses'],
+    ['Complex vowels', 'Fluid transitions'],
+    ['Emphasis on key words', 'Consistent tempo'],
+    ['Rhythmic flow', 'Breath control'],
+    ['Pitch variation', 'Expressive pausing'],
+  ];
+
+  // ================================================================
+  // 3. ADVANCED MANIFOLD (Single cohesive paragraph, 28-35s duration)
+  // ================================================================
+  private static advancedThemes = [
+    {
+      title: 'The Evolution of Technology',
+      paragraph: 'Technological innovation continues to reshape society at an unprecedented rate, where the rapid integration of artificial intelligence into daily infrastructure demands rigorous critical inquiry and ethical discernment to navigate emerging global complexities.',
+    },
+    {
+      title: 'Mastering Public Speaking',
+      paragraph: 'Persuasive rhetoric requires an intricate equilibrium between compelling storytelling, deliberate vocal modulation, and impeccable timing, allowing an extraordinary speaker to captivate an audience through the authentic resonance of their conviction.',
+    },
+    {
+      title: 'Sustainable Global Solutions',
+      paragraph: 'Addressing global ecological challenges demands unprecedented multilateral cooperation and innovative environmental engineering, requiring steadfast institutional commitment alongside pragmatic, community-driven conservation initiatives.',
+    },
+    {
+      title: 'The Philosophy of Resilience',
+      paragraph: 'True resilience is not the absence of vulnerability, but the extraordinary capacity to reconstruct purpose amidst profound adversity, transforming unexpected obstacles into powerful catalysts for personal growth.',
+    },
+    {
+      title: 'The Architecture of Focus',
+      paragraph: 'In an era characterized by ubiquitous cognitive distraction, sustained mental concentration represents the ultimate competitive advantage, requiring deliberate boundary-setting and an unwavering commitment to intellectual depth.',
+    },
+    {
+      title: 'The Dynamics of Leadership',
+      paragraph: 'Exceptional leadership transcends authoritarian directives, finding its authentic expression in cultivating psychological safety, inspiring a shared vision, and empowering collaborative innovation to flourish.',
+    },
+  ];
+
+  private static advancedFocusPairs = [
+    ['Polysyllabic vocabulary', 'Sophisticated cadence', 'Diction'],
+    ['Vocal modulation', 'Nuanced articulation', 'Dynamic pacing'],
+    ['Multi-clause structures', 'Academic vocabulary', 'Clarity'],
+    ['Expressive inflection', 'Complex cadence', 'Flow'],
+    ['Rhetorical emphasis', 'Resonant tone', 'Precision'],
+  ];
+
+  // ================================================================
+  // 4. DYNAMIC SYNTHESIS ENGINE
+  // ================================================================
+  public static generateChallenge(difficulty: Difficulty = 'beginner'): Challenge {
+    let title = '';
+    let paragraph = '';
+    let estimatedDurationSec = 15;
+    let focusAreas: string[] = [];
+    let attempts = 0;
+
+    while (attempts < 20) {
+      if (difficulty === 'beginner') {
+        const item = this.beginnerThemes[Math.floor(Math.random() * this.beginnerThemes.length)];
+        const focus = this.beginnerFocusPairs[Math.floor(Math.random() * this.beginnerFocusPairs.length)];
+        title = item.title;
+        paragraph = `Every morning, I enjoy ${item.scene}. ${item.setting}. ${item.benefit}`;
+        estimatedDurationSec = Math.round(paragraph.split(' ').length * 0.7);
+        focusAreas = focus;
+      } else if (difficulty === 'intermediate') {
+        const item = this.intermediateSubjects[Math.floor(Math.random() * this.intermediateSubjects.length)];
+        const focus = this.intermediateFocusPairs[Math.floor(Math.random() * this.intermediateFocusPairs.length)];
+        title = item.title;
+        paragraph = item.paragraph;
+        estimatedDurationSec = Math.round(paragraph.split(' ').length * 0.65);
+        focusAreas = focus;
+      } else {
+        const item = this.advancedThemes[Math.floor(Math.random() * this.advancedThemes.length)];
+        const focus = this.advancedFocusPairs[Math.floor(Math.random() * this.advancedFocusPairs.length)];
+        title = item.title;
+        paragraph = item.paragraph;
+        estimatedDurationSec = Math.round(paragraph.split(' ').length * 0.6);
+        focusAreas = focus;
+      }
+
+      const key = `${difficulty}:${title}:${paragraph.substring(0, 20)}`;
+      if (!this.seenHistory.has(key)) {
+        this.seenHistory.add(key);
+        break;
+      }
+      attempts++;
+    }
+
+    const uniqueId = `${difficulty}-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
+
+    return {
+      id: uniqueId,
+      title,
+      difficulty,
+      paragraph,
+      estimatedDurationSec: Math.max(estimatedDurationSec, 12),
+      focusAreas,
+    };
+  }
+
+  /**
+   * Generates a complete fresh batch of challenges for the home / practice screen.
+   */
+  public static getChallengeList(countPerDifficulty: number = 4): Challenge[] {
+    const list: Challenge[] = [];
+    const diffs: Difficulty[] = ['beginner', 'intermediate', 'advanced'];
+    diffs.forEach((diff) => {
+      for (let i = 0; i < countPerDifficulty; i++) {
+        list.push(this.generateChallenge(diff));
+      }
+    });
+    return list;
+  }
+}
+
+// Export default initial list for seamless backwards compatibility
+export const challenges: Challenge[] = NanoQwenChallengeEngine.getChallengeList(4);

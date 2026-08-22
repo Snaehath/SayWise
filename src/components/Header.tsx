@@ -1,9 +1,6 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { typography } from '../theme/typography';
 
 interface HeaderProps {
   title?: string;
@@ -19,78 +16,35 @@ export const Header: React.FC<HeaderProps> = ({
   rightElement,
 }) => {
   return (
-    <View style={styles.container}>
-      <View style={styles.leftContainer}>
+    <View className="h-[52px] flex-row items-center justify-between px-4">
+      <View className="w-12 items-start justify-center">
         {onBack && (
           <Pressable
             onPress={onBack}
-            style={({ pressed }) => [
-              styles.backButton,
-              pressed && styles.backButtonPressed,
-            ]}
+            className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200 active:bg-slate-100 shadow-sm"
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
-            <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
+            <Ionicons name="arrow-back" size={20} color="#0F172A" />
           </Pressable>
         )}
       </View>
 
-      <View style={styles.centerContainer}>
-        {title && <Text style={styles.title} numberOfLines={1}>{title}</Text>}
-        {subtitle && <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>}
+      <View className="flex-1 items-center justify-center">
+        {title && (
+          <Text className="text-base font-bold text-slate-900" numberOfLines={1}>
+            {title}
+          </Text>
+        )}
+        {subtitle && (
+          <Text className="text-xs text-slate-500 mt-0.5" numberOfLines={1}>
+            {subtitle}
+          </Text>
+        )}
       </View>
 
-      <View style={styles.rightContainer}>
+      <View className="min-w-[48px] items-end justify-center">
         {rightElement}
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    height: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-  },
-  leftContainer: {
-    width: 48,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-  },
-  backButtonPressed: {
-    backgroundColor: colors.surfaceSubtle,
-  },
-  centerContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    ...typography.h3,
-    fontSize: 16,
-    color: colors.textPrimary,
-  },
-  subtitle: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  rightContainer: {
-    minWidth: 48,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-  },
-});
