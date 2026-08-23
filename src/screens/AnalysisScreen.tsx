@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, Image, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
@@ -16,11 +16,11 @@ interface AnalysisScreenProps {
 }
 
 const ROTATING_MESSAGES = [
-  'Milo is tuning in to your voice...',
+  'Tuning in to your speech cadence...',
   'Evaluating pronunciation clarity...',
   'Measuring natural speaking rhythm...',
   'Checking syllable accuracy & pacing...',
-  'Polishing your speech feedback...',
+  'Calibrating your speaking feedback...',
 ];
 
 export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
@@ -38,7 +38,7 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
   // Animations
   const pulseRingAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
-  const mascotFloatAnim = useRef(new Animated.Value(0)).current;
+  const iconBounceAnim = useRef(new Animated.Value(0)).current;
 
   // Pulse & float animation
   useEffect(() => {
@@ -46,38 +46,38 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
       Animated.sequence([
         Animated.timing(pulseRingAnim, {
           toValue: 1.25,
-          duration: 1200,
+          duration: 1100,
           useNativeDriver: true,
         }),
         Animated.timing(pulseRingAnim, {
           toValue: 1,
-          duration: 1200,
+          duration: 1100,
           useNativeDriver: true,
         }),
       ])
     );
 
-    const floatLoop = Animated.loop(
+    const bounceLoop = Animated.loop(
       Animated.sequence([
-        Animated.timing(mascotFloatAnim, {
+        Animated.timing(iconBounceAnim, {
           toValue: -8,
-          duration: 1500,
+          duration: 1200,
           useNativeDriver: true,
         }),
-        Animated.timing(mascotFloatAnim, {
+        Animated.timing(iconBounceAnim, {
           toValue: 0,
-          duration: 1500,
+          duration: 1200,
           useNativeDriver: true,
         }),
       ])
     );
 
     pulseLoop.start();
-    floatLoop.start();
+    bounceLoop.start();
 
     return () => {
       pulseLoop.stop();
-      floatLoop.stop();
+      bounceLoop.stop();
     };
   }, []);
 
@@ -87,12 +87,12 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
       Animated.sequence([
         Animated.timing(fadeAnim, {
           toValue: 0,
-          duration: 200,
+          duration: 180,
           useNativeDriver: true,
         }),
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 300,
+          duration: 250,
           useNativeDriver: true,
         }),
       ]).start();
@@ -129,10 +129,10 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
     >
       <View className="w-full px-8 items-center">
-        {/* Animated Listening Mascot Graphic */}
-        <View className="w-44 h-44 items-center justify-center mb-6">
+        {/* Animated AI Listening Visualizer Ring */}
+        <View className="w-48 h-48 items-center justify-center mb-6">
           <Animated.View
-            className="absolute w-36 h-36 rounded-full bg-indigo-100/70"
+            className="absolute w-40 h-40 rounded-full bg-indigo-200/50"
             style={[
               {
                 transform: [{ scale: pulseRingAnim }],
@@ -141,15 +141,13 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
           />
           <Animated.View
             style={{
-              transform: [{ translateY: mascotFloatAnim }],
+              transform: [{ translateY: iconBounceAnim }],
             }}
-            className="w-32 h-32 rounded-full bg-white border-2 border-indigo-100 p-1 items-center justify-center shadow-lg shadow-indigo-500/20 overflow-hidden"
+            className="w-32 h-32 rounded-full bg-white border-2 border-indigo-200 items-center justify-center shadow-lg shadow-indigo-500/20"
           >
-            <Image
-              source={require('../../assets/mascot/milo_listening.png')}
-              className="w-full h-full rounded-full"
-              resizeMode="cover"
-            />
+            <View className="w-20 h-20 rounded-full bg-indigo-600 items-center justify-center shadow-md shadow-indigo-500/30">
+              <Ionicons name="mic" size={40} color="#FFFFFF" />
+            </View>
           </Animated.View>
         </View>
 

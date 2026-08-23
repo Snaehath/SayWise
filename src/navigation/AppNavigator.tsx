@@ -21,30 +21,17 @@ type ScreenState =
 export const AppNavigator: React.FC = () => {
   const [currentScreen, setCurrentScreen] = useState<ScreenState>({ name: 'Welcome' });
 
-  // Navigation actions
-  const goToWelcome = () => {
-    setCurrentScreen({ name: 'Welcome' });
-  };
-
-  const goToDifficulty = () => {
-    setCurrentScreen({ name: 'Difficulty' });
-  };
-
-  const goToChallenge = (difficulty: Difficulty, challenge: Challenge) => {
+  // Instant direct navigation actions
+  const goToWelcome = () => setCurrentScreen({ name: 'Welcome' });
+  const goToDifficulty = () => setCurrentScreen({ name: 'Difficulty' });
+  const goToChallenge = (difficulty: Difficulty, challenge: Challenge) =>
     setCurrentScreen({ name: 'Challenge', difficulty, challenge });
-  };
-
-  const goToAnalysis = (challenge: Challenge, audioPath: string, durationSec: number) => {
+  const goToAnalysis = (challenge: Challenge, audioPath: string, durationSec: number) =>
     setCurrentScreen({ name: 'Analysis', challenge, audioPath, durationSec });
-  };
-
-  const goToResult = (challenge: Challenge, audioPath: string, result: AnalysisResult) => {
+  const goToResult = (challenge: Challenge, audioPath: string, result: AnalysisResult) =>
     setCurrentScreen({ name: 'Result', challenge, audioPath, result });
-  };
-
-  const goToCompletion = (result: ChallengeResult) => {
+  const goToCompletion = (result: ChallengeResult) =>
     setCurrentScreen({ name: 'Completion', result });
-  };
 
   const renderScreen = () => {
     switch (currentScreen.name) {

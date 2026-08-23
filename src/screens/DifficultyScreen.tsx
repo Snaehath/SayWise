@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
 import { DifficultyCard } from '../components/DifficultyCard';
 import { Header } from '../components/Header';
-import { MascotMessage } from '../components/MascotMessage';
 import { challengeService } from '../services/challengeService';
 import { challengeStorage } from '../storage/challengeStorage';
 import { Challenge, Difficulty } from '../types/challenge';
@@ -29,39 +28,28 @@ export const DifficultyScreen: React.FC<DifficultyScreenProps> = ({
     onSelectDifficulty(selectedDifficulty, challenge);
   };
 
-  const getDifficultyTip = () => {
-    switch (selectedDifficulty) {
-      case 'beginner':
-        return 'Great choice! Short, crisp sentences perfect for warming up your articulation and pronunciation.';
-      case 'intermediate':
-        return 'Awesome! Longer conversational sentences designed to train your speaking rhythm and sentence linking.';
-      case 'advanced':
-        return 'Challenging! Complex expressions and rich vocabulary for native-level fluency and pacing.';
-    }
-  };
-
   return (
     <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <Header onBack={onBack} title="Difficulty Level" />
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 6, paddingBottom: 24 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="mb-3.5">
-          <Text className="text-xl font-extrabold text-slate-900 mb-1">Select Today's Level</Text>
-          <Text className="text-xs text-slate-500 font-medium">
-            Choose the pace that matches your speaking comfort today.
+        <View className="mb-4">
+          <Text className="text-2xl font-extrabold text-slate-900 mb-1">Select Your Level</Text>
+          <Text className="text-sm text-slate-500 font-medium">
+            Choose your preferred challenge tier for today.
           </Text>
         </View>
 
         {/* 3 Difficulty Cards */}
-        <View className="gap-0.5 mb-3">
+        <View className="mb-4">
           <DifficultyCard
             difficulty="beginner"
             title="Beginner"
             tag="A1 - A2"
-            description="Short sentences and common vocabulary. Perfect for warming up and building core pronunciation."
+            description="Short, crisp sentences to warm up and build core articulation."
             selected={selectedDifficulty === 'beginner'}
             onSelect={setSelectedDifficulty}
           />
@@ -70,7 +58,7 @@ export const DifficultyScreen: React.FC<DifficultyScreenProps> = ({
             difficulty="intermediate"
             title="Intermediate"
             tag="B1 - B2"
-            description="Longer sentences and more natural conversational English. Focuses on sentence linking and rhythm."
+            description="Natural conversational sentences for speaking rhythm & linking."
             selected={selectedDifficulty === 'intermediate'}
             onSelect={setSelectedDifficulty}
           />
@@ -79,39 +67,15 @@ export const DifficultyScreen: React.FC<DifficultyScreenProps> = ({
             difficulty="advanced"
             title="Advanced"
             tag="C1 - C2"
-            description="Complex sentences, challenging vocabulary, and natural speaking patterns for mastery."
+            description="Rich expressions and nuanced native phrasing for mastery."
             selected={selectedDifficulty === 'advanced'}
             onSelect={setSelectedDifficulty}
           />
         </View>
-
-        {/* Dynamic Coach Mascot Guidance */}
-        <MascotMessage
-          mood="encouraging"
-          title="Coach Tip"
-          message={getDifficultyTip()}
-          size="sm"
-          className="mb-3"
-        />
-
-        {/* Training Benefits Banner */}
-        <View className="bg-indigo-50/70 rounded-2xl p-3.5 border border-indigo-100/80 flex-row items-center gap-3">
-          <View className="w-9 h-9 rounded-full bg-white items-center justify-center shadow-sm">
-            <Ionicons name="sparkles" size={18} color="#4F46E5" />
-          </View>
-          <View className="flex-1">
-            <Text className="text-xs font-bold text-indigo-900 leading-4">
-              Daily Habit Building
-            </Text>
-            <Text className="text-[11px] text-indigo-700 leading-4 mt-0.5">
-              Completing any level counts toward your consecutive day speaking streak!
-            </Text>
-          </View>
-        </View>
       </ScrollView>
 
       {/* Fixed Bottom CTA */}
-      <View className="bg-white px-5 pt-3.5 pb-5 border-t border-slate-200 shadow-lg">
+      <View className="bg-white px-5 pt-3.5 pb-6 border-t border-slate-200 shadow-lg">
         <Button
           title="Continue to Challenge"
           onPress={handleContinue}

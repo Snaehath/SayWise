@@ -14,7 +14,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   score,
   color = '#4F46E5',
   delay = 0,
-  className = 'mb-1',
+  className = 'mb-1.5',
 }) => {
   const animatedWidth = useRef(new Animated.Value(0)).current;
 
@@ -34,11 +34,11 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
 
   return (
     <View className={className}>
-      <View className="flex-row justify-between items-center mb-0.5">
-        <Text className="text-xs font-medium text-slate-700">{label}</Text>
-        <Text className="text-xs font-bold" style={{ color }}>{score}</Text>
+      <View className="flex-row justify-between items-center mb-1">
+        <Text className="text-[13px] font-bold text-slate-800">{label}</Text>
+        <Text className="text-[13px] font-extrabold" style={{ color }}>{score}</Text>
       </View>
-      <View className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+      <View className="h-2 bg-slate-100 rounded-full overflow-hidden">
         <Animated.View
           className="h-full rounded-full"
           style={{

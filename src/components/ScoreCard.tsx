@@ -57,28 +57,28 @@ export const ScoreCard: React.FC<ScoreCardProps> = ({
   const grade = getGradeInfo(overallScore);
 
   return (
-    <View className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm mb-3">
+    <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-3">
       <View className="flex-row items-center justify-between">
-        {/* Left: Compact Score Ring */}
-        <View className="items-center justify-center pr-4 border-r border-slate-100 min-w-[104px]">
+        {/* Left: Score Ring */}
+        <View className="items-center justify-center pr-4 border-r border-slate-100 min-w-[112px]">
           <View
-            className="w-20 h-20 rounded-full border-4 items-center justify-center bg-white shadow-sm mb-1.5"
+            className="w-22 h-22 w-[88px] h-[88px] rounded-full border-4 items-center justify-center bg-white shadow-sm mb-2"
             style={{ borderColor: grade.borderColor }}
           >
-            <Text className="text-3xl font-extrabold leading-8" style={{ color: grade.color }}>
+            <Text className="text-4xl font-extrabold leading-10" style={{ color: grade.color }}>
               {overallScore}
             </Text>
-            <Text className="text-[11px] font-semibold text-slate-400 -mt-0.5">/ 100</Text>
+            <Text className="text-xs font-bold text-slate-400 -mt-0.5">/ 100</Text>
           </View>
-          <View className={`px-2.5 py-0.5 rounded-full ${grade.bgClass}`}>
-            <Text className={`text-[11px] font-bold uppercase tracking-wide ${grade.textClass}`}>
+          <View className={`px-3 py-1 rounded-full ${grade.bgClass}`}>
+            <Text className={`text-xs font-extrabold uppercase tracking-wide ${grade.textClass}`}>
               {grade.label}
             </Text>
           </View>
         </View>
 
-        {/* Right: Compact Metrics Breakdown */}
-        <View className="flex-1 pl-3.5 gap-1.5">
+        {/* Right: Metrics Breakdown */}
+        <View className="flex-1 pl-4 gap-1">
           <ProgressBar
             label="Pronunciation"
             score={pronunciationScore}
