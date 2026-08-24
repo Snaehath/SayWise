@@ -10,6 +10,7 @@ const KEYS = {
   COMPLETION_HISTORY: 'saywise.completion_history',
   ONBOARDING_SEEN: 'saywise.onboarding_seen',
   TOTAL_WORDS_SPOKEN: 'saywise.total_words_spoken',
+  TOTAL_XP: 'saywise.total_xp',
 };
 
 interface IMMKVInstance {
@@ -34,7 +35,6 @@ class SafeStorage {
 
     try {
       // Check if native NitroModules exists on global before attempting to load MMKV.
-      // This strictly prevents the "Failed to get NitroModules" runtime error in Expo Go.
       const hasNativeNitro =
         typeof (globalThis as unknown as { NitroModules?: unknown }).NitroModules !== 'undefined' ||
         typeof (global as unknown as { NitroModules?: unknown }).NitroModules !== 'undefined';
@@ -110,6 +110,22 @@ class SafeStorage {
 const storage = new SafeStorage();
 
 /**
+ * Cumulative XP Thresholds for Levels 1 - 10
+ */
+const LEVEL_XP_THRESHOLDS = [
+  0,     // Level 1: 0 XP
+  200,   // Level 2: 200 XP (1st challenge + 100 boost = 200 XP -> Instant Level 2!)
+  450,   // Level 3: 450 XP (250 XP needed: 3 without streak, 2 with streak)
+  750,   // Level 4: 750 XP (300 XP needed: 3 without streak, 2 with streak)
+  1100,  // Level 5: 1100 XP -> Intermediate Tier Unlocked ⚡
+  1500,  // Level 6: 1500 XP
+  1950,  // Level 7: 1950 XP
+  2450,  // Level 8: 2450 XP
+  3000,  // Level 9: 3000 XP
+  3600,  // Level 10: 3600 XP -> Advanced Tier Unlocked 👑
+];
+
+/**
  * Get current date string formatted as YYYY-MM-DD
  */
 export function getTodayDateString(): string {
@@ -128,16 +144,136 @@ export interface DayStreakItem {
   completed: boolean;
 }
 
+export interface ActivityDay {
+  dateStr: string;
+  completed: boolean;
+  score?: number;
+}
+
+export interface UserLevelInfo {
+  level: number;
+  title: string;
+  totalCompleted: number;
+  totalXP: number;
+  currentLevelXP: number;
+  nextLevelXP: number;
+  levelProgressPercent: number;
+  activeDifficulty: Difficulty;
+  isIntermediateUnlocked: boolean;
+  isAdvancedUnlocked: boolean;
+  nextUnlockName: string | null;
+  nextUnlockLevel: number;
+  hasStreakBonus: boolean;
+}
+
 export const challengeStorage = {
+  /**
+   * Calculate cumulative XP from completion history
+   */
+  getTotalXP(): number {
+    const rawXP = storage.getString(KEYS.TOTAL_XP);
+    if (rawXP) {
+      const parsed = parseInt(rawXP, 10);
+      if (!isNaN(parsed) && parsed > 0) return parsed;
+    }
+
+    // Calculate dynamically from history
+    const history = challengeStorage.getHistory();
+    let xp = 0;
+    history.forEach((h, index) => {
+      let sessionXP = 100; // Base XP
+      if (index === 0) sessionXP += 100; // 1st Challenge Boost (Level 1 -> 2)
+      if (h.overallScore >= 85) sessionXP += 25; // Accuracy bonus
+      sessionXP += 50; // Daily Consistency Bonus
+      xp += sessionXP;
+    });
+
+    return xp;
+  },
+
+  /**
+   * Get comprehensive User Level & Tier Progression with XP calculation
+   */
+  getLevelInfo(): UserLevelInfo {
+    const history = challengeStorage.getHistory();
+    const totalCompleted = history.length;
+    const totalXP = challengeStorage.getTotalXP();
+    const streakCount = challengeStorage.getStreakCount();
+    const hasStreakBonus = streakCount > 0;
+
+    // Determine Level based on XP thresholds
+    let level = 1;
+    for (let i = LEVEL_XP_THRESHOLDS.length - 1; i >= 0; i--) {
+      if (totalXP >= LEVEL_XP_THRESHOLDS[i]) {
+        level = i + 1;
+        break;
+      }
+    }
+
+    const currentLevelBaseXP = LEVEL_XP_THRESHOLDS[level - 1] || 0;
+    const nextLevelXP = LEVEL_XP_THRESHOLDS[level] || LEVEL_XP_THRESHOLDS[LEVEL_XP_THRESHOLDS.length - 1];
+    const xpIntoLevel = Math.max(0, totalXP - currentLevelBaseXP);
+    const xpNeededForLevel = Math.max(1, nextLevelXP - currentLevelBaseXP);
+    const levelProgressPercent = level >= 10 ? 100 : Math.min(100, Math.round((xpIntoLevel / xpNeededForLevel) * 100));
+
+    // Unlocks: Level 5 for Intermediate, Level 10 for Advanced
+    const isIntermediateUnlocked = level >= 5;
+    const isAdvancedUnlocked = level >= 10;
+
+    let activeDifficulty: Difficulty = 'beginner';
+    const saved = storage.getString(KEYS.SELECTED_DIFFICULTY);
+
+    if (saved === 'advanced' && isAdvancedUnlocked) {
+      activeDifficulty = 'advanced';
+    } else if (saved === 'intermediate' && isIntermediateUnlocked) {
+      activeDifficulty = 'intermediate';
+    } else if (saved === 'beginner') {
+      activeDifficulty = 'beginner';
+    } else {
+      activeDifficulty = isAdvancedUnlocked ? 'advanced' : isIntermediateUnlocked ? 'intermediate' : 'beginner';
+    }
+
+    let title = 'Novice Speaker 🌱';
+    if (level >= 10) title = 'Mastery Speaker 👑';
+    else if (level >= 7) title = 'Expert Speaker 🚀';
+    else if (level >= 5) title = 'Fluent Speaker ⚡';
+    else if (level >= 3) title = 'Rising Speaker 🌿';
+    else if (level >= 2) title = 'Apprentice Speaker 🎯';
+
+    let nextUnlockName: string | null = 'Intermediate ⚡';
+    let nextUnlockLevel = 5;
+
+    if (level >= 10) {
+      nextUnlockName = null;
+      nextUnlockLevel = 10;
+    } else if (level >= 5) {
+      nextUnlockName = 'Advanced 👑';
+      nextUnlockLevel = 10;
+    }
+
+    return {
+      level,
+      title,
+      totalCompleted,
+      totalXP,
+      currentLevelXP: totalXP,
+      nextLevelXP,
+      levelProgressPercent,
+      activeDifficulty,
+      isIntermediateUnlocked,
+      isAdvancedUnlocked,
+      nextUnlockName,
+      nextUnlockLevel,
+      hasStreakBonus,
+    };
+  },
+
   /**
    * Selected Difficulty
    */
-  getSelectedDifficulty(): Difficulty | null {
-    const val = storage.getString(KEYS.SELECTED_DIFFICULTY);
-    if (val === 'beginner' || val === 'intermediate' || val === 'advanced') {
-      return val;
-    }
-    return null;
+  getSelectedDifficulty(): Difficulty {
+    const info = challengeStorage.getLevelInfo();
+    return info.activeDifficulty;
   },
 
   setSelectedDifficulty(difficulty: Difficulty): void {
@@ -185,23 +321,43 @@ export const challengeStorage = {
   },
 
   /**
-   * Save challenge result and record completion for today
+   * Save challenge result and record completion for today + compute XP rewards
    */
-  saveChallengeResult(result: ChallengeResult): void {
+  saveChallengeResult(result: ChallengeResult): { xpEarned: number; isFirstBoost: boolean; hasStreakBonus: boolean } {
     const today = getTodayDateString();
+    const existingHistory = challengeStorage.getHistory();
+    const isFirstChallenge = existingHistory.length === 0;
+    const currentStreak = challengeStorage.getStreakCount();
+    const hasStreakBonus = currentStreak > 0;
+
+    // Calculate XP earned in this session
+    let sessionXP = 100; // Base challenge reward
+    if (isFirstChallenge) sessionXP += 100; // First Challenge Kickstart Boost (100 -> 200 XP -> Instant Level 2!)
+    if (hasStreakBonus) sessionXP += 50; // Daily Consistency Boost (+50 XP)
+    if (result.overallScore >= 85) sessionXP += 25; // Accuracy Milestone Bonus (+25 XP)
+
+    const currentTotalXP = challengeStorage.getTotalXP();
+    const newTotalXP = currentTotalXP + sessionXP;
+    storage.set(KEYS.TOTAL_XP, String(newTotalXP));
+
     storage.set(KEYS.LAST_COMPLETED_DATE, today);
     storage.set(KEYS.TODAY_RESULT, JSON.stringify(result));
     storage.set(KEYS.ONBOARDING_SEEN, 'true');
 
-    // Estimate words in this session (approx 25 words per challenge)
+    // Estimate words in this session
     const currentWords = challengeStorage.getTotalWordsSpoken();
     const wordsInSession = result.difficulty === 'advanced' ? 45 : result.difficulty === 'intermediate' ? 35 : 25;
     storage.set(KEYS.TOTAL_WORDS_SPOKEN, String(currentWords + wordsInSession));
 
     // Append to history
-    const existingHistory = challengeStorage.getHistory();
     const updatedHistory = [result, ...existingHistory.filter((h) => h.completedAt !== result.completedAt)];
     storage.set(KEYS.COMPLETION_HISTORY, JSON.stringify(updatedHistory));
+
+    return {
+      xpEarned: sessionXP,
+      isFirstBoost: isFirstChallenge,
+      hasStreakBonus,
+    };
   },
 
   /**
@@ -214,7 +370,7 @@ export const challengeStorage = {
       if (!isNaN(parsed)) return parsed;
     }
     const history = challengeStorage.getHistory();
-    return history.length * 30; // fallback calculation
+    return history.length * 30;
   },
 
   /**
@@ -239,6 +395,36 @@ export const challengeStorage = {
   },
 
   /**
+   * 30-Day Activity History Array
+   */
+  get30DayActivityMap(): ActivityDay[] {
+    const history = challengeStorage.getHistory();
+    const map = new Map<string, number>();
+    history.forEach((h) => {
+      if (h.completedAt) {
+        const dateStr = h.completedAt.split('T')[0];
+        map.set(dateStr, h.overallScore);
+      }
+    });
+
+    const now = new Date();
+    const result: ActivityDay[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      result.push({
+        dateStr,
+        completed: map.has(dateStr),
+        score: map.get(dateStr),
+      });
+    }
+    return result;
+  },
+
+  /**
    * Weekly streak matrix for Mon - Sun of the current week
    */
   getWeeklyStreakMatrix(): DayStreakItem[] {
@@ -252,9 +438,8 @@ export const challengeStorage = {
 
     const now = new Date();
     const todayStr = getTodayDateString();
-    // Get Monday of current week
-    const currentDayOfWeek = now.getDay(); // 0 is Sunday, 1 is Monday
-    const distanceToMonday = (currentDayOfWeek + 6) % 7; // distance back to Monday
+    const currentDayOfWeek = now.getDay();
+    const distanceToMonday = (currentDayOfWeek + 6) % 7;
     const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - distanceToMonday);
 
     const weekDays: DayStreakItem[] = [];
@@ -318,7 +503,7 @@ export const challengeStorage = {
 
     const mostRecent = sortedDates[0];
     if (mostRecent !== today && mostRecent !== yesterdayStr) {
-      return 0; // Streak broken
+      return 0;
     }
 
     let streak = 0;
@@ -353,5 +538,6 @@ export const challengeStorage = {
     storage.delete(KEYS.COMPLETION_HISTORY);
     storage.delete(KEYS.ONBOARDING_SEEN);
     storage.delete(KEYS.TOTAL_WORDS_SPOKEN);
+    storage.delete(KEYS.TOTAL_XP);
   },
 };

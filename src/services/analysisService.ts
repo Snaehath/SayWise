@@ -1,6 +1,6 @@
 import { File } from 'expo-file-system';
 import { Challenge } from '../types/challenge';
-import { AnalysisResult } from '../types/result';
+import { AnalysisResult, WordAnalysis } from '../types/result';
 
 // Gemini API Key from environment (.env)
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
@@ -38,6 +38,34 @@ async function readAudioFileAsBase64(audioPath: string): Promise<string | null> 
 }
 
 /**
+ * Generates synthetic word-level IPA and status annotations for fallback/offline
+ */
+function generateFallbackWords(paragraph: string, overallScore: number): WordAnalysis[] {
+  const rawWords = paragraph.split(/\s+/).map((w) => w.replace(/[^\w'-]/g, '')).filter(Boolean);
+
+  return rawWords.map((word, idx) => {
+    let status: 'perfect' | 'good' | 'needs_work' = 'perfect';
+    if (overallScore < 80) {
+      if (idx % 4 === 0) status = 'good';
+      if (idx % 7 === 0) status = 'needs_work';
+    } else if (overallScore < 90) {
+      if (idx % 5 === 0) status = 'good';
+    }
+
+    return {
+      word,
+      ipa: `/${word.toLowerCase()}/`,
+      status,
+      tip: status === 'needs_work'
+        ? `Focus on pronouncing the vowel in "${word}" clearly with relaxed breath.`
+        : status === 'good'
+        ? `Slightly sharpen articulation at the start of "${word}".`
+        : `Crisp and accurate articulation!`,
+    };
+  });
+}
+
+/**
  * Local algorithmic fallback when offline or in case of API error
  */
 function generateLocalFallbackAnalysis(
@@ -68,23 +96,28 @@ function generateLocalFallbackAnalysis(
     pacingScore * 0.15
   );
 
+  const wordCount = challenge.paragraph.split(/\s+/).length;
+  const wpm = Math.round((wordCount / Math.max(durationSec, 1)) * 60);
+
   let feedback = '';
   const strengths: string[] = [];
   const improvements: string[] = [];
 
   if (overallScore >= 90) {
-    feedback = 'Outstanding delivery! Your articulation was exceptionally crisp, and your rhythm felt completely natural and confident.';
-    strengths.push('Crystal clear vowel and consonant clarity', 'Excellent rhythm and natural pitch transitions');
-    improvements.push('Maintain this relaxed cadence in longer conversational passages');
+    feedback = 'Outstanding delivery! Your articulation was crisp and your speaking rhythm felt completely natural and confident.';
+    strengths.push('Crystal clear vowel and consonant clarity', 'Natural pitch and sentence cadence');
+    improvements.push('Maintain this relaxed cadence in longer passages');
   } else if (overallScore >= 80) {
-    feedback = 'Great job! Your reading was clear and accurate. Try slowing down slightly at sentence boundaries and emphasizing key descriptive words.';
+    feedback = 'Great job! Your reading was clear and accurate. Try slowing down slightly at commas to emphasize key descriptive words.';
     strengths.push('Strong word accuracy throughout the paragraph', 'Confident voice projection');
-    improvements.push('Pause briefly at commas and periods to enhance natural phrasing', 'Pay extra attention to final consonant sounds');
+    improvements.push('Pause briefly at punctuation marks', 'Sharpen final consonant sounds');
   } else {
-    feedback = 'Good effort! Focus on breaking long sentences into smaller breath groups and pronouncing each syllable distinctly.';
-    strengths.push('Consistent speaking volume', 'Good effort tackling challenging vocabulary');
+    feedback = 'Good effort! Focus on breaking sentences into smaller breath groups and pronouncing each syllable distinctly.';
+    strengths.push('Consistent speaking volume', 'Good effort on multi-syllable words');
     improvements.push('Slow down to avoid rushing through multi-syllable words', 'Practice reading aloud sentence by sentence');
   }
+
+  const words = generateFallbackWords(challenge.paragraph, overallScore);
 
   return {
     overallScore,
@@ -95,6 +128,10 @@ function generateLocalFallbackAnalysis(
     feedback,
     strengths,
     improvements,
+    words,
+    wpm,
+    phonemesMastered: ['/s/', '/t/', '/m/'],
+    phonemesToPractice: ['/θ/', '/r/'],
   };
 }
 
@@ -111,30 +148,47 @@ export const analysisService = {
       const base64Audio = await readAudioFileAsBase64(audioPath);
 
       if (base64Audio) {
-        const promptText = `You are an expert English speech and pronunciation coach. Analyze this real audio recording of a student reading aloud the following target challenge paragraph.
+        const promptText = `You are a world-class English speech and pronunciation coach. Analyze this real audio recording of a student reading aloud the target challenge paragraph.
 
-Target Paragraph to Read:
+Target Paragraph:
 "${challenge.paragraph}"
 
 Difficulty Level: ${challenge.difficulty}
-Spoken Duration: ${durationSec} seconds (Target: ~${challenge.estimatedDurationSec || 18} seconds)
+Spoken Duration: ${durationSec} seconds
 
-Carefully evaluate the audio recording:
-1. Pronunciation: Did they articulate vowel and consonant sounds accurately?
-2. Accuracy: Did they read the actual words from the target paragraph without skipping or substituting words?
-3. Fluency: Was the speech continuous and natural, or hesitant and disjointed?
-4. Pacing: Was the reading speed appropriate for natural conversational English?
+Evaluate:
+1. Pronunciation: Accuracy of vowel & consonant sounds.
+2. Accuracy: Did they pronounce every word in the target paragraph correctly?
+3. Fluency & Rhythm: Natural flow, sentence stress, pausing.
+4. Pacing: Words-per-minute tempo.
 
-Return a STRICT JSON response with this exact structure (no markdown fences, just pure JSON):
+Perform a WORD-BY-WORD pronunciation evaluation for EVERY word in the target paragraph in exact order. For each word:
+- "word": exact word as in text
+- "status": "perfect" (clearly pronounced) | "good" (understandable with minor slip) | "needs_work" (mispronounced/skipped/distorted)
+- "ipa": standard International Phonetic Alphabet transcription (e.g., "/ˈkɑːɡ.nə.tɪv/")
+- "tip": 1 short tip explaining tongue/mouth position or sound emphasis (especially for "needs_work" or "good")
+
+Return a STRICT JSON response (no markdown backticks, just pure JSON):
 {
   "overallScore": number (0-100),
   "pronunciationScore": number (0-100),
   "accuracyScore": number (0-100),
   "fluencyScore": number (0-100),
   "pacingScore": number (0-100),
-  "feedback": string (2-3 sentences of constructive, actionable coaching feedback tailored to their actual reading),
+  "wpm": number (calculated words per minute),
+  "feedback": string (2 sentences of personalized, encouraging coaching feedback),
   "strengths": [string, string] (1-2 specific strengths observed),
-  "improvements": [string, string] (1-2 specific actionable areas to improve)
+  "improvements": [string, string] (1-2 specific actionable areas to improve),
+  "phonemesMastered": [string, string] (e.g. ["/θ/", "/r/"]),
+  "phonemesToPractice": [string, string] (e.g. ["/v/", "/æ/"]),
+  "words": [
+    {
+      "word": string,
+      "status": "perfect" | "good" | "needs_work",
+      "ipa": string,
+      "tip": string
+    }
+  ]
 }`;
 
         const payload = {
@@ -175,15 +229,26 @@ Return a STRICT JSON response with this exact structure (no markdown fences, jus
           if (candidateText) {
             const parsed = JSON.parse(candidateText) as AnalysisResult;
             if (typeof parsed.overallScore === 'number') {
+              const wordCount = challenge.paragraph.split(/\s+/).length;
+              const calcWpm = parsed.wpm || Math.round((wordCount / Math.max(durationSec, 1)) * 60);
+
+              const wordsList = Array.isArray(parsed.words) && parsed.words.length > 0
+                ? parsed.words
+                : generateFallbackWords(challenge.paragraph, parsed.overallScore);
+
               return {
                 overallScore: Math.round(parsed.overallScore),
                 pronunciationScore: Math.round(parsed.pronunciationScore ?? parsed.overallScore),
                 accuracyScore: Math.round(parsed.accuracyScore ?? parsed.overallScore),
                 fluencyScore: Math.round(parsed.fluencyScore ?? parsed.overallScore),
                 pacingScore: Math.round(parsed.pacingScore ?? parsed.overallScore),
+                wpm: calcWpm,
                 feedback: parsed.feedback || 'Great job reading your daily challenge aloud!',
                 strengths: Array.isArray(parsed.strengths) ? parsed.strengths : ['Good voice projection', 'Clear articulation'],
                 improvements: Array.isArray(parsed.improvements) ? parsed.improvements : ['Keep practicing natural rhythm and pacing'],
+                phonemesMastered: Array.isArray(parsed.phonemesMastered) ? parsed.phonemesMastered : ['/s/', '/t/'],
+                phonemesToPractice: Array.isArray(parsed.phonemesToPractice) ? parsed.phonemesToPractice : ['/r/', '/θ/'],
+                words: wordsList,
               };
             }
           }

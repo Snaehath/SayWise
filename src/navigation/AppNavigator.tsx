@@ -6,12 +6,16 @@ import { ChallengeScreen } from '../screens/ChallengeScreen';
 import { CompletionScreen } from '../screens/CompletionScreen';
 import { DifficultyScreen } from '../screens/DifficultyScreen';
 import { ResultScreen } from '../screens/ResultScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
 import { WelcomeScreen } from '../screens/WelcomeScreen';
+import { challengeService } from '../services/challengeService';
+import { challengeStorage } from '../storage/challengeStorage';
 import { Challenge, Difficulty } from '../types/challenge';
 import { AnalysisResult, ChallengeResult } from '../types/result';
 
 type ScreenState =
   | { name: 'Welcome' }
+  | { name: 'Settings' }
   | { name: 'Difficulty' }
   | { name: 'Challenge'; difficulty: Difficulty; challenge: Challenge }
   | { name: 'Analysis'; challenge: Challenge; audioPath: string; durationSec: number }
@@ -21,8 +25,9 @@ type ScreenState =
 export const AppNavigator: React.FC = () => {
   const [currentScreen, setCurrentScreen] = useState<ScreenState>({ name: 'Welcome' });
 
-  // Instant direct navigation actions
+  // Instant navigation actions
   const goToWelcome = () => setCurrentScreen({ name: 'Welcome' });
+  const goToSettings = () => setCurrentScreen({ name: 'Settings' });
   const goToDifficulty = () => setCurrentScreen({ name: 'Difficulty' });
   const goToChallenge = (difficulty: Difficulty, challenge: Challenge) =>
     setCurrentScreen({ name: 'Challenge', difficulty, challenge });
@@ -33,15 +38,26 @@ export const AppNavigator: React.FC = () => {
   const goToCompletion = (result: ChallengeResult) =>
     setCurrentScreen({ name: 'Completion', result });
 
+  // 1-Tap direct launch using user's active unlocked level
+  const handleDirectStartChallenge = () => {
+    const activeDiff = challengeStorage.getSelectedDifficulty();
+    const challenge = challengeService.getTodayChallenge(activeDiff);
+    goToChallenge(activeDiff, challenge);
+  };
+
   const renderScreen = () => {
     switch (currentScreen.name) {
       case 'Welcome':
         return (
           <WelcomeScreen
-            onStartChallenge={goToDifficulty}
+            onStartChallenge={handleDirectStartChallenge}
+            onOpenSettings={goToSettings}
             onViewCompletedResult={(res) => goToCompletion(res)}
           />
         );
+
+      case 'Settings':
+        return <SettingsScreen onBack={goToWelcome} />;
 
       case 'Difficulty':
         return (
@@ -55,7 +71,7 @@ export const AppNavigator: React.FC = () => {
         return (
           <ChallengeScreen
             challenge={currentScreen.challenge}
-            onBack={goToDifficulty}
+            onBack={goToWelcome}
             onFinishRecording={(audioPath, durationSec) =>
               goToAnalysis(currentScreen.challenge, audioPath, durationSec)
             }
@@ -97,7 +113,12 @@ export const AppNavigator: React.FC = () => {
         );
 
       default:
-        return <WelcomeScreen onStartChallenge={goToDifficulty} />;
+        return (
+          <WelcomeScreen
+            onStartChallenge={handleDirectStartChallenge}
+            onOpenSettings={goToSettings}
+          />
+        );
     }
   };
 

@@ -205,20 +205,12 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
         </View>
 
         {/* Focus Paragraph Card */}
-        <View className="bg-white rounded-3xl p-5 border-[1.5px] border-slate-200 shadow-sm my-3">
-          <View className="flex-row items-center gap-1.5 mb-3">
-            <Ionicons name="volume-medium-outline" size={18} color="#94A3B8" />
-            <Text className="text-xs font-bold text-slate-400 tracking-wider uppercase">READ ALOUD CLEARLY</Text>
+        <View className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm my-3">
+          <View className="flex-row items-center gap-2 mb-3.5">
+            <Ionicons name="volume-medium-outline" size={18} color="#6366F1" />
+            <Text className="text-xs font-extrabold text-indigo-600 tracking-wider uppercase">READ ALOUD CLEARLY</Text>
           </View>
-          <Text className="text-lg text-slate-900 leading-[30px] tracking-wide font-normal">{challenge.paragraph}</Text>
-        </View>
-
-        {/* Tips Box */}
-        <View className="flex-row items-start bg-amber-50 p-4 rounded-2xl border border-amber-200 mt-1">
-          <Ionicons name="bulb-outline" size={18} color="#D97706" style={{ marginRight: 8, marginTop: 1 }} />
-          <Text className="text-xs text-amber-900 flex-1 leading-5">
-            Speak at a natural conversational tempo. Emphasize keywords and pause naturally at punctuation.
-          </Text>
+          <Text className="text-xl text-slate-900 leading-9 font-normal">{challenge.paragraph}</Text>
         </View>
 
         {/* Permission Denied Warning */}

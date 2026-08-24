@@ -111,6 +111,18 @@ export const CompletionScreen: React.FC<CompletionScreenProps> = ({
           <View className="h-[1px] bg-slate-100 my-2.5" />
 
           <View className="flex-row items-center justify-between py-1">
+            <Text className="text-sm font-medium text-slate-500">XP Reward</Text>
+            <View className="flex-row items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
+              <Ionicons name="sparkles" size={13} color="#4F46E5" />
+              <Text className="text-sm font-extrabold text-indigo-700">
+                +{streakCount > 0 ? 150 : 100} XP
+              </Text>
+            </View>
+          </View>
+
+          <View className="h-[1px] bg-slate-100 my-2.5" />
+
+          <View className="flex-row items-center justify-between py-1">
             <Text className="text-sm font-medium text-slate-500">Total Words Spoken</Text>
             <Text className="text-base font-extrabold text-emerald-600">~{totalWords} words</Text>
           </View>

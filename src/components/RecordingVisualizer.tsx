@@ -13,17 +13,19 @@ export const RecordingVisualizer: React.FC<RecordingVisualizerProps> = ({
   const ringScaleAnim = useRef(new Animated.Value(1)).current;
   const ringOpacityAnim = useRef(new Animated.Value(0.6)).current;
 
-  // Waveform bar heights
+  // 11 Waveform bar heights with natural bell curve heights
   const barHeights = useRef([
     new Animated.Value(12),
-    new Animated.Value(24),
-    new Animated.Value(36),
-    new Animated.Value(18),
-    new Animated.Value(28),
-    new Animated.Value(42),
     new Animated.Value(20),
-    new Animated.Value(30),
-    new Animated.Value(14),
+    new Animated.Value(32),
+    new Animated.Value(44),
+    new Animated.Value(28),
+    new Animated.Value(48),
+    new Animated.Value(34),
+    new Animated.Value(42),
+    new Animated.Value(26),
+    new Animated.Value(18),
+    new Animated.Value(10),
   ]).current;
 
   useEffect(() => {
@@ -32,25 +34,25 @@ export const RecordingVisualizer: React.FC<RecordingVisualizerProps> = ({
       Animated.sequence([
         Animated.parallel([
           Animated.timing(pulseAnim, {
-            toValue: 1.2,
-            duration: 800,
+            toValue: 1.25,
+            duration: 700,
             useNativeDriver: true,
           }),
           Animated.timing(ringScaleAnim, {
-            toValue: 1.6,
-            duration: 800,
+            toValue: 1.7,
+            duration: 700,
             useNativeDriver: true,
           }),
           Animated.timing(ringOpacityAnim, {
             toValue: 0,
-            duration: 800,
+            duration: 700,
             useNativeDriver: true,
           }),
         ]),
         Animated.parallel([
           Animated.timing(pulseAnim, {
             toValue: 1,
-            duration: 800,
+            duration: 700,
             useNativeDriver: true,
           }),
           Animated.timing(ringScaleAnim, {
@@ -68,18 +70,21 @@ export const RecordingVisualizer: React.FC<RecordingVisualizerProps> = ({
     );
     pulseLoop.start();
 
-    // Waveform random height animations
+    // Waveform rhythmic equalizer animation
     const interval = setInterval(() => {
-      barHeights.forEach((bar) => {
-        const randomHeight = 8 + Math.random() * 38;
+      barHeights.forEach((bar, index) => {
+        // Bell-curve weighted random variation
+        const weight = Math.sin(((index + 1) / (barHeights.length + 1)) * Math.PI);
+        const randomHeight = 8 + Math.random() * (40 * weight + 10);
+
         Animated.timing(bar, {
-          toValue: randomHeight,
-          duration: 180,
-          easing: Easing.linear,
+          toValue: Math.max(6, Math.min(48, randomHeight)),
+          duration: 140,
+          easing: Easing.out(Easing.quad),
           useNativeDriver: false,
         }).start();
       });
-    }, 200);
+    }, 150);
 
     return () => {
       pulseLoop.stop();
@@ -96,10 +101,10 @@ export const RecordingVisualizer: React.FC<RecordingVisualizerProps> = ({
   return (
     <View className="items-center justify-center py-4">
       {/* Top Status Tag */}
-      <View className="flex-row items-center bg-red-50 px-3 py-1.5 rounded-full mb-2">
-        <View className="w-4 h-4 items-center justify-center mr-1.5">
+      <View className="flex-row items-center bg-rose-50 px-3.5 py-1.5 rounded-full border border-rose-200 mb-2">
+        <View className="w-4 h-4 items-center justify-center mr-2">
           <Animated.View
-            className="absolute w-4 h-4 rounded-full bg-red-500"
+            className="absolute w-4 h-4 rounded-full bg-rose-500"
             style={[
               {
                 transform: [{ scale: ringScaleAnim }],
@@ -108,25 +113,30 @@ export const RecordingVisualizer: React.FC<RecordingVisualizerProps> = ({
             ]}
           />
           <Animated.View
-            className="w-2 h-2 rounded-full bg-red-500"
+            className="w-2.5 h-2.5 rounded-full bg-rose-600"
             style={[{ transform: [{ scale: pulseAnim }] }]}
           />
         </View>
-        <Text className="text-[11px] font-bold uppercase tracking-wider text-red-700">Recording...</Text>
+        <Text className="text-xs font-extrabold uppercase tracking-wider text-rose-700">Listening to Speech...</Text>
       </View>
 
-      {/* Elapsed Timer Display */}
-      <Text className="text-3xl font-bold text-slate-900 my-1 font-mono">{formatTime(durationSec)}</Text>
+      {/* Elapsed Monospace Timer */}
+      <Text className="text-3xl font-extrabold text-slate-900 my-1 font-mono tracking-wider">
+        {formatTime(durationSec)}
+      </Text>
 
-      {/* Animated Waveform Sound Bars */}
-      <View className="flex-row items-center justify-center h-12 gap-1.5 mt-1">
-        {barHeights.map((animHeight, index) => (
-          <Animated.View
-            key={index}
-            className="w-1 bg-red-500 rounded-sm"
-            style={[{ height: animHeight }]}
-          />
-        ))}
+      {/* Animated Waveform Equalizer Bars */}
+      <View className="flex-row items-center justify-center h-14 gap-1.5 mt-1.5 px-4">
+        {barHeights.map((animHeight, index) => {
+          const isCenter = index >= 3 && index <= 7;
+          return (
+            <Animated.View
+              key={index}
+              className={`w-1.5 rounded-full ${isCenter ? 'bg-indigo-600' : 'bg-indigo-400'}`}
+              style={[{ height: animHeight }]}
+            />
+          );
+        })}
       </View>
     </View>
   );
