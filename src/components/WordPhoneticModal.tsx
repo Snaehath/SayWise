@@ -3,6 +3,7 @@ import { Modal, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { WordAnalysis } from '../types/result';
 
+// props
 interface WordPhoneticModalProps {
   wordData: WordAnalysis | null;
   visible: boolean;
@@ -14,8 +15,10 @@ export const WordPhoneticModal: React.FC<WordPhoneticModalProps> = ({
   visible,
   onClose,
 }) => {
+  // guard
   if (!wordData) return null;
 
+  // helpers
   const getStatusBadge = () => {
     switch (wordData.status) {
       case 'perfect':
@@ -50,6 +53,7 @@ export const WordPhoneticModal: React.FC<WordPhoneticModalProps> = ({
 
   const badge = getStatusBadge();
 
+  // render
   return (
     <Modal
       visible={visible}
@@ -65,7 +69,7 @@ export const WordPhoneticModal: React.FC<WordPhoneticModalProps> = ({
           onPress={(e) => e.stopPropagation()}
           className="w-full bg-white rounded-3xl p-6 border border-slate-200 shadow-2xl"
         >
-          {/* Header row with close button */}
+          {/* header */}
           <View className="flex-row items-center justify-between mb-4">
             <View className={`flex-row items-center px-3 py-1 rounded-full border ${badge.bgClass} ${badge.borderClass}`}>
               <Ionicons name={badge.icon} size={15} color={badge.color} style={{ marginRight: 5 }} />
@@ -82,7 +86,7 @@ export const WordPhoneticModal: React.FC<WordPhoneticModalProps> = ({
             </Pressable>
           </View>
 
-          {/* Word Title & IPA Phonetic Breakdown */}
+          {/* ipa breakdown */}
           <View className="mb-4">
             <Text className="text-3xl font-extrabold text-slate-900 mb-1">
               {wordData.word}
@@ -94,7 +98,7 @@ export const WordPhoneticModal: React.FC<WordPhoneticModalProps> = ({
             </View>
           </View>
 
-          {/* Articulation & Tongue Position Tip */}
+          {/* articulation tip */}
           <View className="bg-slate-50 rounded-2xl p-4 border border-slate-200 mb-5">
             <View className="flex-row items-center gap-1.5 mb-1.5">
               <Ionicons name="sparkles" size={16} color="#6366F1" />
@@ -107,7 +111,7 @@ export const WordPhoneticModal: React.FC<WordPhoneticModalProps> = ({
             </Text>
           </View>
 
-          {/* Dismiss Button */}
+          {/* dismiss */}
           <Pressable
             onPress={onClose}
             className="w-full bg-slate-900 py-3.5 rounded-2xl items-center justify-center active:opacity-90"

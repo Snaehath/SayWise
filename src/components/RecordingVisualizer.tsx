@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, Text, View } from 'react-native';
 
+// props
 interface RecordingVisualizerProps {
   durationSec: number;
 }
@@ -8,12 +9,12 @@ interface RecordingVisualizerProps {
 export const RecordingVisualizer: React.FC<RecordingVisualizerProps> = ({
   durationSec,
 }) => {
-  // Pulse animation for recording dot & ring
+  // animations
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const ringScaleAnim = useRef(new Animated.Value(1)).current;
   const ringOpacityAnim = useRef(new Animated.Value(0.6)).current;
 
-  // 11 Waveform bar heights with natural bell curve heights
+  // 11 waveform bars
   const barHeights = useRef([
     new Animated.Value(12),
     new Animated.Value(20),
@@ -28,8 +29,9 @@ export const RecordingVisualizer: React.FC<RecordingVisualizerProps> = ({
     new Animated.Value(10),
   ]).current;
 
+  // effects
   useEffect(() => {
-    // Pulse animation
+    // pulse loop
     const pulseLoop = Animated.loop(
       Animated.sequence([
         Animated.parallel([
@@ -70,10 +72,9 @@ export const RecordingVisualizer: React.FC<RecordingVisualizerProps> = ({
     );
     pulseLoop.start();
 
-    // Waveform rhythmic equalizer animation
+    // waveform loop
     const interval = setInterval(() => {
       barHeights.forEach((bar, index) => {
-        // Bell-curve weighted random variation
         const weight = Math.sin(((index + 1) / (barHeights.length + 1)) * Math.PI);
         const randomHeight = 8 + Math.random() * (40 * weight + 10);
 
@@ -92,15 +93,17 @@ export const RecordingVisualizer: React.FC<RecordingVisualizerProps> = ({
     };
   }, []);
 
+  // helpers
   const formatTime = (totalSeconds: number): string => {
     const mins = Math.floor(totalSeconds / 60);
     const secs = totalSeconds % 60;
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
+  // render
   return (
     <View className="items-center justify-center py-4">
-      {/* Top Status Tag */}
+      {/* status tag */}
       <View className="flex-row items-center bg-rose-50 px-3.5 py-1.5 rounded-full border border-rose-200 mb-2">
         <View className="w-4 h-4 items-center justify-center mr-2">
           <Animated.View
@@ -120,12 +123,12 @@ export const RecordingVisualizer: React.FC<RecordingVisualizerProps> = ({
         <Text className="text-xs font-extrabold uppercase tracking-wider text-rose-700">Listening to Speech...</Text>
       </View>
 
-      {/* Elapsed Monospace Timer */}
+      {/* elapsed timer */}
       <Text className="text-3xl font-extrabold text-slate-900 my-1 font-mono tracking-wider">
         {formatTime(durationSec)}
       </Text>
 
-      {/* Animated Waveform Equalizer Bars */}
+      {/* equalizer bars */}
       <View className="flex-row items-center justify-center h-14 gap-1.5 mt-1.5 px-4">
         {barHeights.map((animHeight, index) => {
           const isCenter = index >= 3 && index <= 7;

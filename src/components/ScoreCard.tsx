@@ -2,6 +2,7 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import { ProgressBar } from './ProgressBar';
 
+// props
 interface ScoreCardProps {
   overallScore: number;
   pronunciationScore: number;
@@ -17,6 +18,7 @@ export const ScoreCard: React.FC<ScoreCardProps> = ({
   fluencyScore,
   pacingScore,
 }) => {
+  // helpers
   const getGradeInfo = (score: number) => {
     if (score >= 90) {
       return {
@@ -56,10 +58,11 @@ export const ScoreCard: React.FC<ScoreCardProps> = ({
 
   const grade = getGradeInfo(overallScore);
 
+  // render
   return (
     <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-3">
       <View className="flex-row items-center justify-between">
-        {/* Left: Score Ring */}
+        {/* score ring */}
         <View className="items-center justify-center pr-4 border-r border-slate-100 min-w-[112px]">
           <View
             className="w-22 h-22 w-[88px] h-[88px] rounded-full border-4 items-center justify-center bg-white shadow-sm mb-2"
@@ -77,7 +80,7 @@ export const ScoreCard: React.FC<ScoreCardProps> = ({
           </View>
         </View>
 
-        {/* Right: Metrics Breakdown */}
+        {/* metric progress bars */}
         <View className="flex-1 pl-4 gap-1">
           <ProgressBar
             label="Pronunciation"

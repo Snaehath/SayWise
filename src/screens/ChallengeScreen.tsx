@@ -9,6 +9,7 @@ import { RecordingVisualizer } from '../components/RecordingVisualizer';
 import { recordingService } from '../services/recordingService';
 import { Challenge } from '../types/challenge';
 
+// props
 interface ChallengeScreenProps {
   challenge: Challenge;
   onBack: () => void;
@@ -20,19 +21,22 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
   onBack,
   onFinishRecording,
 }) => {
+  // hooks
   const insets = useSafeAreaInsets();
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
 
+  // states
   const [isRecording, setIsRecording] = useState(false);
   const [durationSec, setDurationSec] = useState(0);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [isPreparing, setIsPreparing] = useState(false);
 
+  // refs
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
   const activeUriRef = useRef<string | null>(null);
 
-  // Clean up on unmount
+  // effects
   useEffect(() => {
     return () => {
       if (timerRef.current) {
@@ -43,11 +47,12 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
           audioRecorder.stop();
         }
       } catch {
-        // Safe disposal
+        // safe disposal
       }
     };
   }, []);
 
+  // handlers
   const handleStartRecording = async () => {
     setIsPreparing(true);
     setPermissionDenied(false);
@@ -64,7 +69,6 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
         return;
       }
 
-      // Prepare and start recording
       await audioRecorder.prepareToRecordAsync();
       audioRecorder.record();
 
@@ -72,7 +76,6 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
       setDurationSec(0);
       startTimeRef.current = Date.now();
 
-      // Start elapsed timer
       timerRef.current = setInterval(() => {
         const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
         setDurationSec(elapsed);
@@ -99,7 +102,6 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
       const recordedUri = audioRecorder.uri || `temp_rec_${Date.now()}.m4a`;
       activeUriRef.current = recordedUri;
 
-      // Guard: very short recording
       if (totalDuration < 2) {
         Alert.alert(
           'Recording Too Short',
@@ -143,7 +145,7 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
                   await recordingService.deleteTemporaryAudio(audioRecorder.uri);
                 }
               } catch {
-                // Ignore
+                // ignore
               }
               onBack();
             },
@@ -155,6 +157,7 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
     }
   };
 
+  // helpers
   const getDifficultyBadge = () => {
     switch (challenge.difficulty) {
       case 'beginner':
@@ -168,9 +171,10 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
 
   const badge = getDifficultyBadge();
 
+  // render
   return (
     <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
-      {/* Top Header */}
+      {/* header */}
       <Header
         onBack={handleBackPress}
         title="Speaking Challenge"
@@ -185,7 +189,7 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Challenge Header Info */}
+        {/* challenge title & tags */}
         <View className="mb-4">
           <Text className="text-xs font-bold text-indigo-600 tracking-wider uppercase mb-1">
             DAILY CHALLENGE
@@ -204,7 +208,7 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
           )}
         </View>
 
-        {/* Focus Paragraph Card */}
+        {/* reading paragraph card */}
         <View className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm my-3">
           <View className="flex-row items-center gap-2 mb-3.5">
             <Ionicons name="volume-medium-outline" size={18} color="#6366F1" />
@@ -213,7 +217,7 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
           <Text className="text-xl text-slate-900 leading-9 font-normal">{challenge.paragraph}</Text>
         </View>
 
-        {/* Permission Denied Warning */}
+        {/* permission warning */}
         {permissionDenied && (
           <View className="flex-row items-center bg-red-50 p-4 rounded-2xl border border-red-200 mt-3">
             <Ionicons name="alert-circle" size={20} color="#EF4444" style={{ marginRight: 8 }} />
@@ -224,7 +228,7 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
         )}
       </ScrollView>
 
-      {/* Bottom Recording Section */}
+      {/* recording cta section */}
       <View className="bg-white px-5 pt-3.5 pb-6 border-t border-slate-200 shadow-xl">
         {isRecording ? (
           <View className="w-full">

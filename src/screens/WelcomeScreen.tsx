@@ -8,6 +8,7 @@ import { MetricStatsRow } from '../components/MetricStatsRow';
 import { challengeStorage, UserLevelInfo } from '../storage/challengeStorage';
 import { ChallengeResult } from '../types/result';
 
+// props
 interface WelcomeScreenProps {
   onStartChallenge: () => void;
   onOpenSettings: () => void;
@@ -19,7 +20,10 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   onOpenSettings,
   onViewCompletedResult,
 }) => {
+  // hooks
   const insets = useSafeAreaInsets();
+
+  // states
   const [isCompletedToday, setIsCompletedToday] = useState(false);
   const [todayResult, setTodayResult] = useState<ChallengeResult | null>(null);
   const [isNewUser, setIsNewUser] = useState(true);
@@ -28,6 +32,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const [levelInfo, setLevelInfo] = useState<UserLevelInfo>(challengeStorage.getLevelInfo());
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
+  // handlers
   const loadState = () => {
     const completed = challengeStorage.isCompletedToday();
     const result = challengeStorage.getTodayResult();
@@ -45,10 +50,16 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     setLevelInfo(lvl);
   };
 
+  const handleStart = () => {
+    challengeStorage.setOnboardingSeen();
+    onStartChallenge();
+  };
+
+  // effects
   useEffect(() => {
     loadState();
 
-    // Live ticking countdown to next midnight challenge drop
+    // countdown to midnight
     const updateCountdown = () => {
       const now = new Date();
       const midnight = new Date(now);
@@ -67,11 +78,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     return () => clearInterval(timer);
   }, []);
 
-  const handleStart = () => {
-    challengeStorage.setOnboardingSeen();
-    onStartChallenge();
-  };
-
+  // render
   return (
     <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <ScrollView
@@ -82,7 +89,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Header with Brand, Permanent XP Pill & Settings Gear Button */}
+        {/* header */}
         <View className="flex-row items-center justify-between mb-4 mt-1">
           <View className="flex-row items-center">
             <View className="w-11 h-11 rounded-2xl bg-indigo-600 items-center justify-center shadow-md shadow-indigo-500/25 mr-3">
@@ -95,7 +102,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           </View>
 
           <View className="flex-row items-center gap-2">
-            {/* Permanent XP Pill (Zero Anxiety) */}
+            {/* xp pill */}
             <View className="flex-row items-center px-3 py-1.5 rounded-full border border-indigo-200 bg-indigo-50 shadow-sm">
               <Ionicons name="sparkles" size={15} color="#4F46E5" style={{ marginRight: 4 }} />
               <Text className="text-sm font-extrabold text-indigo-700">
@@ -103,7 +110,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               </Text>
             </View>
 
-            {/* Settings Gear Button */}
+            {/* settings action */}
             <Pressable
               onPress={onOpenSettings}
               hitSlop={10}
@@ -114,14 +121,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           </View>
         </View>
 
-        {/* 🎮 Permanent Level & XP Progress Card (Boot.dev-Style) */}
+        {/* level card */}
         <LevelCard
           levelInfo={levelInfo}
           onPress={onOpenSettings}
           variant="home"
         />
 
-        {/* 1. NEW USER ONBOARDING HERO CARD */}
+        {/* onboarding hero */}
         {isNewUser && (
           <View className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm mb-4">
             <View className="flex-row items-center bg-indigo-50 px-3 py-1 rounded-full self-start mb-3">
@@ -168,11 +175,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           </View>
         )}
 
-        {/* 2. RETURNING USER DIRECT FLOW */}
+        {/* daily challenge flow */}
         {!isNewUser && (
           <>
             {isCompletedToday && todayResult ? (
-              /* Completed Today State (Closure, Countdown & Satisfaction) */
+              /* completed state */
               <View className="bg-emerald-50/70 rounded-3xl p-6 border border-emerald-300 mb-4 shadow-sm">
                 <View className="flex-row justify-between items-center mb-2.5">
                   <View className="flex-row items-center gap-2">
@@ -190,7 +197,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                   Outstanding effort! Your vocal muscle memory is strengthening every session. Rest well and come back tomorrow for fresh calibration.
                 </Text>
 
-                {/* Live Countdown Timer to Tomorrow's Challenge */}
+                {/* countdown */}
                 <View className="flex-row items-center justify-between bg-emerald-100/70 px-4 py-2.5 rounded-2xl border border-emerald-200 mb-3.5">
                   <View className="flex-row items-center gap-2">
                     <Ionicons name="timer-outline" size={18} color="#047857" />
@@ -201,14 +208,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                   </Text>
                 </View>
 
-                {/* Growth Metric Stats Row (Reusable) */}
+                {/* stats */}
                 <MetricStatsRow
                   wordsSpoken={totalWords}
                   practiceMinutes={totalMinutes}
                   totalDays={levelInfo.totalCompletedDays}
                 />
 
-                {/* Dedicated Action Button: View Today's Result & Analysis */}
+                {/* view results */}
                 {onViewCompletedResult && (
                   <Button
                     title="View Today's Result & Audio"
@@ -220,7 +227,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 )}
               </View>
             ) : (
-              /* Ready for Daily Challenge (1-Tap Direct Launch) */
+              /* ready state */
               <View className="bg-white rounded-3xl p-6 border-2 border-indigo-600 shadow-md shadow-indigo-500/10 mb-4">
                 <View className="flex-row justify-between items-center mb-3">
                   <View className="flex-row items-center">
@@ -252,7 +259,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           </>
         )}
 
-        {/* Motivational Slogan Section */}
+        {/* footer quote */}
         <View className="bg-white rounded-2xl py-4 px-4 border border-slate-200 shadow-sm my-1 items-center justify-center">
           <Text className="text-sm text-slate-600 italic leading-5 text-center font-medium">
             {isCompletedToday

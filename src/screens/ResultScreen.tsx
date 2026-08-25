@@ -12,6 +12,7 @@ import { challengeStorage } from '../storage/challengeStorage';
 import { Challenge } from '../types/challenge';
 import { AnalysisResult, ChallengeResult, WordAnalysis } from '../types/result';
 
+// props
 interface ResultScreenProps {
   challenge: Challenge;
   audioPath: string;
@@ -27,10 +28,14 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   onComplete,
   onBackToHome,
 }) => {
+  // hooks
   const insets = useSafeAreaInsets();
+
+  // states
   const [isSaving, setIsSaving] = useState(false);
   const [selectedWord, setSelectedWord] = useState<WordAnalysis | null>(null);
 
+  // handlers
   const handleCompleteChallenge = async () => {
     setIsSaving(true);
 
@@ -67,6 +72,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
     onComplete(challengeResult);
   };
 
+  // helpers
   const getDifficultyTheme = () => {
     switch (challenge.difficulty) {
       case 'beginner':
@@ -79,8 +85,6 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   };
 
   const difficultyTheme = getDifficultyTheme();
-
-  // Extract short punchy feedback & top 1 strength / improvement
   const topStrength = result.strengths?.[0] || 'Clear vowel articulation';
   const topImprovement = result.improvements?.[0] || 'Keep a steady speaking rhythm';
 
@@ -93,8 +97,10 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
         tip: 'Clear pronunciation',
       }));
 
+  // render
   return (
     <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
+      {/* header */}
       <Header
         title="Your Result"
         onBack={onBackToHome}
@@ -104,7 +110,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
         contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 6, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Challenge Header Row */}
+        {/* challenge title badge */}
         <View className="flex-row items-center justify-between bg-white rounded-3xl px-5 py-3.5 border border-slate-200 shadow-sm mb-3.5">
           <View className="flex-1 pr-2">
             <Text className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">CHALLENGE</Text>
@@ -125,7 +131,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
           </View>
         </View>
 
-        {/* Visual Score Dashboard Card (Ring + 4 Metric Bars) */}
+        {/* score ring & metric bars */}
         <ScoreCard
           overallScore={result.overallScore}
           pronunciationScore={result.pronunciationScore}
@@ -134,12 +140,12 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
           pacingScore={result.pacingScore}
         />
 
-        {/* Dual-Track Audio Player (Take Playback) */}
+        {/* audio player */}
         <View className="mb-3.5">
           <AudioShadowPlayer audioPath={audioPath} />
         </View>
 
-        {/* Interactive Word-by-Word Pronunciation Heatmap Card */}
+        {/* word heatmap card */}
         <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-3.5">
           <View className="flex-row items-center justify-between mb-3">
             <View className="flex-row items-center gap-2">
@@ -149,7 +155,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
             <Text className="text-[11px] font-bold text-slate-400">Tap word for IPA</Text>
           </View>
 
-          {/* Word Chips Paragraph */}
+          {/* word chips */}
           <View className="flex-row flex-wrap gap-1.5 leading-7">
             {words.map((item, index) => {
               let chipBg = 'bg-emerald-50 border-emerald-200 text-emerald-900';
@@ -171,7 +177,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
             })}
           </View>
 
-          {/* Color Key Legend */}
+          {/* legend */}
           <View className="flex-row items-center justify-center gap-4 mt-4 pt-3 border-t border-slate-100">
             <View className="flex-row items-center gap-1.5">
               <View className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
@@ -188,14 +194,13 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
           </View>
         </View>
 
-        {/* Coaching Highlights (Bite-sized & Crisp) */}
+        {/* coaching notes */}
         <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-2 gap-3.5">
-          {/* Main Coach Note */}
           <Text className="text-sm font-semibold text-slate-800 leading-6" numberOfLines={4}>
             "{result.feedback}"
           </Text>
 
-          {/* Top Strength Pill Card */}
+          {/* top strength */}
           <View className="flex-row items-start bg-emerald-50/90 p-3.5 rounded-2xl border border-emerald-200">
             <Ionicons name="checkmark-circle" size={20} color="#059669" style={{ marginRight: 8, marginTop: 1 }} />
             <View className="flex-1">
@@ -206,7 +211,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
             </View>
           </View>
 
-          {/* Key Focus / Improvement Pill Card */}
+          {/* key focus */}
           <View className="flex-row items-start bg-blue-50/90 p-3.5 rounded-2xl border border-blue-200">
             <Ionicons name="arrow-up-circle" size={20} color="#2563EB" style={{ marginRight: 8, marginTop: 1 }} />
             <View className="flex-1">
@@ -219,14 +224,14 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
         </View>
       </ScrollView>
 
-      {/* Interactive Word IPA Modal */}
+      {/* phonetic modal */}
       <WordPhoneticModal
         wordData={selectedWord}
         visible={Boolean(selectedWord)}
         onClose={() => setSelectedWord(null)}
       />
 
-      {/* Bottom Complete CTA */}
+      {/* complete cta */}
       <View className="bg-white px-5 pt-3.5 pb-6 border-t border-slate-200 shadow-lg">
         <Button
           title="Complete Challenge"

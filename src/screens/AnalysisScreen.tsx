@@ -7,6 +7,7 @@ import { analysisService } from '../services/analysisService';
 import { Challenge } from '../types/challenge';
 import { AnalysisResult } from '../types/result';
 
+// props
 interface AnalysisScreenProps {
   challenge: Challenge;
   audioPath: string;
@@ -30,17 +31,20 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
   onAnalysisSuccess,
   onCancel,
 }) => {
+  // hooks
   const insets = useSafeAreaInsets();
+
+  // states
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [hasError, setHasError] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
 
-  // Animations
+  // animations
   const pulseRingAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const iconBounceAnim = useRef(new Animated.Value(0)).current;
 
-  // Pulse & float animation
+  // effects
   useEffect(() => {
     const pulseLoop = Animated.loop(
       Animated.sequence([
@@ -81,7 +85,7 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
     };
   }, []);
 
-  // Rotate messages every 1.8s
+  // rotate messages
   useEffect(() => {
     const interval = setInterval(() => {
       Animated.sequence([
@@ -103,7 +107,7 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
     return () => clearInterval(interval);
   }, []);
 
-  // Run real Gemini audio analysis
+  // handlers
   const runAnalysis = async () => {
     setHasError(false);
     setIsRetrying(true);
@@ -123,13 +127,14 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
     runAnalysis();
   }, []);
 
+  // render
   return (
     <View
       className="flex-1 bg-slate-50 justify-center items-center"
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
     >
       <View className="w-full px-8 items-center">
-        {/* Animated AI Listening Visualizer Ring */}
+        {/* orb visualizer */}
         <View className="w-48 h-48 items-center justify-center mb-6">
           <Animated.View
             className="absolute w-40 h-40 rounded-full bg-indigo-200/50"
@@ -151,7 +156,7 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
           </Animated.View>
         </View>
 
-        {/* Message and Status */}
+        {/* status messages */}
         {hasError ? (
           <View className="items-center w-full">
             <Text className="text-xl font-bold text-red-600 mb-1">Analysis Notice</Text>

@@ -6,25 +6,30 @@ import { Button } from '../components/Button';
 import { challengeStorage, UserLevelInfo } from '../storage/challengeStorage';
 import { ChallengeResult } from '../types/result';
 
+// props
 interface CompletionScreenProps {
   result: ChallengeResult;
   onComeAgain: () => void;
 }
 
 export const CompletionScreen: React.FC<CompletionScreenProps> = ({ result, onComeAgain }) => {
+  // hooks
   const insets = useSafeAreaInsets();
+
+  // animations
   const scaleAnim = useRef(new Animated.Value(0.7)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const rankPopAnim = useRef(new Animated.Value(0.8)).current;
 
+  // states
   const [totalWords, setTotalWords] = useState(0);
   const [levelInfo, setLevelInfo] = useState<UserLevelInfo>(challengeStorage.getLevelInfo());
 
+  // effects
   useEffect(() => {
     setTotalWords(challengeStorage.getTotalWordsSpoken());
     setLevelInfo(challengeStorage.getLevelInfo());
 
-    // Enter animations
     Animated.parallel([
       Animated.spring(scaleAnim, {
         toValue: 1,
@@ -47,16 +52,18 @@ export const CompletionScreen: React.FC<CompletionScreenProps> = ({ result, onCo
     ]).start();
   }, []);
 
+  // helpers
   const isHighAccuracy = result.overallScore >= 85;
   const earnedXP = 100 + (isHighAccuracy ? 25 : 0);
 
+  // render
   return (
     <View
       className="flex-1 bg-slate-50"
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
     >
       <View className="flex-1 px-6 justify-center items-center">
-        {/* Animated Trophy Celebration Icon */}
+        {/* trophy celebration */}
         <Animated.View
           className="items-center justify-center mb-4"
           style={[
@@ -71,7 +78,7 @@ export const CompletionScreen: React.FC<CompletionScreenProps> = ({ result, onCo
           </View>
         </Animated.View>
 
-        {/* Level Rank Pill (Zero Anxiety) */}
+        {/* rank pill */}
         <Animated.View
           style={{ transform: [{ scale: rankPopAnim }] }}
           className="flex-row items-center bg-indigo-50 px-4 py-2 rounded-full border border-indigo-200 shadow-sm mb-3"
@@ -89,7 +96,7 @@ export const CompletionScreen: React.FC<CompletionScreenProps> = ({ result, onCo
           You showed up for your vocal practice today. Muscle memory is growing!
         </Text>
 
-        {/* Achievement Summary Card */}
+        {/* summary card */}
         <View className="w-full bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-4">
           <View className="flex-row items-center justify-between py-1">
             <Text className="text-sm font-medium text-slate-500">Challenge</Text>
@@ -132,7 +139,7 @@ export const CompletionScreen: React.FC<CompletionScreenProps> = ({ result, onCo
         </View>
       </View>
 
-      {/* Bottom CTA */}
+      {/* return cta */}
       <View className="bg-white px-5 pt-3.5 pb-6 border-t border-slate-200 shadow-xl">
         <Button
           title="Return Home"

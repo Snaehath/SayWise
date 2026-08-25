@@ -3,6 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { UserLevelInfo } from '../storage/challengeStorage';
 
+// props
 interface LevelCardProps {
   levelInfo: UserLevelInfo;
   onPress?: () => void;
@@ -14,6 +15,7 @@ export const LevelCard: React.FC<LevelCardProps> = ({
   onPress,
   variant = 'home',
 }) => {
+  // settings variant
   if (variant === 'settings') {
     return (
       <View className="bg-indigo-600 rounded-3xl p-6 shadow-md shadow-indigo-500/25 mb-5">
@@ -35,7 +37,7 @@ export const LevelCard: React.FC<LevelCardProps> = ({
           </View>
         </View>
 
-        {/* Progress Bar towards Next Level / Tier Unlock */}
+        {/* progress bar */}
         {levelInfo.level < 10 ? (
           <View>
             <View className="flex-row justify-between items-center mb-1.5">
@@ -64,6 +66,7 @@ export const LevelCard: React.FC<LevelCardProps> = ({
     );
   }
 
+  // home variant
   return (
     <Pressable
       onPress={onPress}
@@ -90,7 +93,7 @@ export const LevelCard: React.FC<LevelCardProps> = ({
         </View>
       </View>
 
-      {/* Progress bar towards next level */}
+      {/* progress bar */}
       {levelInfo.level < 10 && (
         <View className="mt-1">
           <View className="flex-row justify-between items-center mb-1">
@@ -110,7 +113,7 @@ export const LevelCard: React.FC<LevelCardProps> = ({
         </View>
       )}
 
-      {/* Habit Encouragement Tag */}
+      {/* habit tag */}
       <View className="bg-slate-50 rounded-xl px-3 py-1.5 flex-row items-center justify-between border border-slate-200">
         {levelInfo.level === 1 ? (
           <View className="flex-row items-center gap-1.5">

@@ -8,17 +8,22 @@ import { LevelCard } from '../components/LevelCard';
 import { ActivityDay, challengeStorage, UserLevelInfo } from '../storage/challengeStorage';
 import { Difficulty } from '../types/challenge';
 
+// props
 interface SettingsScreenProps {
   onBack: () => void;
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
+  // hooks
   const insets = useSafeAreaInsets();
+
+  // states
   const [levelInfo, setLevelInfo] = useState<UserLevelInfo>(challengeStorage.getLevelInfo());
   const [totalWords, setTotalWords] = useState(challengeStorage.getTotalWordsSpoken());
   const [totalMinutes, setTotalMinutes] = useState(challengeStorage.getTotalMinutesPracticed());
   const [activityMap, setActivityMap] = useState<ActivityDay[]>(challengeStorage.get30DayActivityMap());
 
+  // handlers
   const handleSelectDifficulty = (diff: Difficulty) => {
     if (diff === 'intermediate' && !levelInfo.isIntermediateUnlocked) {
       Alert.alert(
@@ -63,6 +68,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
     );
   };
 
+  // render
   return (
     <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <Header title="Settings & Level" onBack={onBack} />
@@ -71,17 +77,17 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Reusable User Level Card (Settings Variant) */}
+        {/* level status */}
         <LevelCard levelInfo={levelInfo} variant="settings" />
 
-        {/* Difficulty Tier Preferences */}
+        {/* difficulty tiers */}
         <View className="mb-5">
           <Text className="text-lg font-extrabold text-slate-900 mb-1">Difficulty Tiers</Text>
           <Text className="text-xs text-slate-500 font-medium mb-3.5">
             Higher tiers unlock automatically as your level increases.
           </Text>
 
-          {/* 1. Beginner */}
+          {/* 1. beginner */}
           <Pressable
             onPress={() => handleSelectDifficulty('beginner')}
             className={`rounded-2xl border p-4 mb-3 flex-row items-center justify-between ${
@@ -117,7 +123,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
             </View>
           </Pressable>
 
-          {/* 2. Intermediate */}
+          {/* 2. intermediate */}
           <Pressable
             onPress={() => handleSelectDifficulty('intermediate')}
             className={`rounded-2xl border p-4 mb-3 flex-row items-center justify-between ${
@@ -163,7 +169,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
             )}
           </Pressable>
 
-          {/* 3. Advanced */}
+          {/* 3. advanced */}
           <Pressable
             onPress={() => handleSelectDifficulty('advanced')}
             className={`rounded-2xl border p-4 mb-3 flex-row items-center justify-between ${
@@ -210,10 +216,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
           </Pressable>
         </View>
 
-        {/* 📅 Reusable 30-Day Vocal Habit Activity Heatmap (GitHub Style) */}
+        {/* habit heatmap */}
         <ActivityHeatmap activityMap={activityMap} />
 
-        {/* Overall Lifetime Stats */}
+        {/* stats */}
         <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-6">
           <Text className="text-sm font-extrabold text-slate-900 mb-3">Lifetime Stats</Text>
           <View className="flex-row justify-between items-center py-1">
@@ -232,7 +238,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
           </View>
         </View>
 
-        {/* Dev Reset Utility */}
+        {/* dev reset */}
         <View className="items-center">
           <Pressable onPress={handleResetDev} className="py-2 px-4 flex-row items-center">
             <Ionicons name="refresh-outline" size={15} color="#94A3B8" style={{ marginRight: 6 }} />
