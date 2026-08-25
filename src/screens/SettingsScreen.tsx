@@ -15,7 +15,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
   const [levelInfo, setLevelInfo] = useState<UserLevelInfo>(challengeStorage.getLevelInfo());
   const [totalWords, setTotalWords] = useState(challengeStorage.getTotalWordsSpoken());
   const [totalMinutes, setTotalMinutes] = useState(challengeStorage.getTotalMinutesPracticed());
-  const [streakCount, setStreakCount] = useState(challengeStorage.getStreakCount());
   const [activityMap, setActivityMap] = useState<ActivityDay[]>(challengeStorage.get30DayActivityMap());
 
   const handleSelectDifficulty = (diff: Difficulty) => {
@@ -55,7 +54,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
             setLevelInfo(challengeStorage.getLevelInfo());
             setTotalWords(0);
             setTotalMinutes(0);
-            setStreakCount(0);
             setActivityMap(challengeStorage.get30DayActivityMap());
           },
         },
@@ -303,8 +301,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
           </View>
           <View className="h-[1px] bg-slate-100 my-2" />
           <View className="flex-row justify-between items-center py-1">
-            <Text className="text-xs text-slate-500 font-semibold">Current Daily Streak</Text>
-            <Text className="text-sm font-extrabold text-amber-600">🔥 {streakCount} Days</Text>
+            <Text className="text-xs text-slate-500 font-semibold">Total Days Practiced</Text>
+            <Text className="text-sm font-extrabold text-amber-600">🎙️ {levelInfo.totalCompletedDays} Days</Text>
           </View>
         </View>
 

@@ -34,7 +34,6 @@ class SafeStorage {
     this.initialized = true;
 
     try {
-      // Check if native NitroModules exists on global before attempting to load MMKV.
       const hasNativeNitro =
         typeof (globalThis as unknown as { NitroModules?: unknown }).NitroModules !== 'undefined' ||
         typeof (global as unknown as { NitroModules?: unknown }).NitroModules !== 'undefined';
@@ -110,19 +109,32 @@ class SafeStorage {
 const storage = new SafeStorage();
 
 /**
- * Cumulative XP Thresholds for Levels 1 - 10
+ * Cumulative XP Thresholds for Levels 1 - 10 (Boot.dev-style permanent mastery)
  */
 const LEVEL_XP_THRESHOLDS = [
-  0,     // Level 1: 0 XP
-  200,   // Level 2: 200 XP (1st challenge + 100 boost = 200 XP -> Instant Level 2!)
-  450,   // Level 3: 450 XP (250 XP needed: 3 without streak, 2 with streak)
-  750,   // Level 4: 750 XP (300 XP needed: 3 without streak, 2 with streak)
-  1100,  // Level 5: 1100 XP -> Intermediate Tier Unlocked ⚡
-  1500,  // Level 6: 1500 XP
-  1950,  // Level 7: 1950 XP
-  2450,  // Level 8: 2450 XP
-  3000,  // Level 9: 3000 XP
-  3600,  // Level 10: 3600 XP -> Advanced Tier Unlocked 👑
+  0,     // Level 1: 0 XP (Voice Novice 🌱)
+  200,   // Level 2: 200 XP (Cadence Apprentice 🎯) -> 1st challenge + 100 boost = Instant Lvl 2!
+  450,   // Level 3: 450 XP (Rhythm Adept 🌿)
+  750,   // Level 4: 750 XP (Speech Practitioner 💫)
+  1100,  // Level 5: 1100 XP (Fluent Speaker ⚡) -> Unlocks Intermediate
+  1500,  // Level 6: 1500 XP (Articulation Specialist 🎙️)
+  1950,  // Level 7: 1950 XP (Resonance Expert 🚀)
+  2450,  // Level 8: 2450 XP (Dynamic Orator ✨)
+  3000,  // Level 9: 3000 XP (Eloquence Master 🌟)
+  3600,  // Level 10: 3600 XP (Voice Grandmaster 👑) -> Unlocks Advanced
+];
+
+const LEVEL_TITLES = [
+  'Voice Novice 🌱',
+  'Cadence Apprentice 🎯',
+  'Rhythm Adept 🌿',
+  'Speech Practitioner 💫',
+  'Fluent Speaker ⚡',
+  'Articulation Specialist 🎙️',
+  'Resonance Expert 🚀',
+  'Dynamic Orator ✨',
+  'Eloquence Master 🌟',
+  'Voice Grandmaster 👑',
 ];
 
 /**
@@ -136,14 +148,6 @@ export function getTodayDateString(): string {
   return `${year}-${month}-${day}`;
 }
 
-export interface DayStreakItem {
-  dayName: string;
-  shortLabel: string;
-  dateStr: string;
-  isToday: boolean;
-  completed: boolean;
-}
-
 export interface ActivityDay {
   dateStr: string;
   completed: boolean;
@@ -154,6 +158,7 @@ export interface UserLevelInfo {
   level: number;
   title: string;
   totalCompleted: number;
+  totalCompletedDays: number;
   totalXP: number;
   currentLevelXP: number;
   nextLevelXP: number;
@@ -163,12 +168,11 @@ export interface UserLevelInfo {
   isAdvancedUnlocked: boolean;
   nextUnlockName: string | null;
   nextUnlockLevel: number;
-  hasStreakBonus: boolean;
 }
 
 export const challengeStorage = {
   /**
-   * Calculate cumulative XP from completion history
+   * Calculate cumulative XP from storage / completion history
    */
   getTotalXP(): number {
     const rawXP = storage.getString(KEYS.TOTAL_XP);
@@ -177,14 +181,13 @@ export const challengeStorage = {
       if (!isNaN(parsed) && parsed > 0) return parsed;
     }
 
-    // Calculate dynamically from history
     const history = challengeStorage.getHistory();
     let xp = 0;
     history.forEach((h, index) => {
       let sessionXP = 100; // Base XP
-      if (index === 0) sessionXP += 100; // 1st Challenge Boost (Level 1 -> 2)
-      if (h.overallScore >= 85) sessionXP += 25; // Accuracy bonus
-      sessionXP += 50; // Daily Consistency Bonus
+      if (index === 0) sessionXP += 100; // 1st Challenge Kickstart Boost (Instant Level 2)
+      if (h.overallScore >= 85) sessionXP += 25; // Precision Articulation bonus
+      sessionXP += 25; // Consistency Practice reward
       xp += sessionXP;
     });
 
@@ -192,16 +195,29 @@ export const challengeStorage = {
   },
 
   /**
-   * Get comprehensive User Level & Tier Progression with XP calculation
+   * Total unique days practiced (permanent, never resets)
+   */
+  getTotalCompletedDays(): number {
+    const history = challengeStorage.getHistory();
+    const dateSet = new Set<string>();
+    history.forEach((h) => {
+      if (h.completedAt) {
+        dateSet.add(h.completedAt.split('T')[0]);
+      }
+    });
+    return dateSet.size;
+  },
+
+  /**
+   * Get comprehensive User Level & Permanent Progression Info
    */
   getLevelInfo(): UserLevelInfo {
     const history = challengeStorage.getHistory();
     const totalCompleted = history.length;
+    const totalCompletedDays = challengeStorage.getTotalCompletedDays();
     const totalXP = challengeStorage.getTotalXP();
-    const streakCount = challengeStorage.getStreakCount();
-    const hasStreakBonus = streakCount > 0;
 
-    // Determine Level based on XP thresholds
+    // Determine Level based on XP thresholds (Permanent, never decreases)
     let level = 1;
     for (let i = LEVEL_XP_THRESHOLDS.length - 1; i >= 0; i--) {
       if (totalXP >= LEVEL_XP_THRESHOLDS[i]) {
@@ -216,7 +232,7 @@ export const challengeStorage = {
     const xpNeededForLevel = Math.max(1, nextLevelXP - currentLevelBaseXP);
     const levelProgressPercent = level >= 10 ? 100 : Math.min(100, Math.round((xpIntoLevel / xpNeededForLevel) * 100));
 
-    // Unlocks: Level 5 for Intermediate, Level 10 for Advanced
+    // Tier Unlocks (Permanent)
     const isIntermediateUnlocked = level >= 5;
     const isAdvancedUnlocked = level >= 10;
 
@@ -233,12 +249,7 @@ export const challengeStorage = {
       activeDifficulty = isAdvancedUnlocked ? 'advanced' : isIntermediateUnlocked ? 'intermediate' : 'beginner';
     }
 
-    let title = 'Novice Speaker 🌱';
-    if (level >= 10) title = 'Mastery Speaker 👑';
-    else if (level >= 7) title = 'Expert Speaker 🚀';
-    else if (level >= 5) title = 'Fluent Speaker ⚡';
-    else if (level >= 3) title = 'Rising Speaker 🌿';
-    else if (level >= 2) title = 'Apprentice Speaker 🎯';
+    const title = LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
 
     let nextUnlockName: string | null = 'Intermediate ⚡';
     let nextUnlockLevel = 5;
@@ -255,6 +266,7 @@ export const challengeStorage = {
       level,
       title,
       totalCompleted,
+      totalCompletedDays,
       totalXP,
       currentLevelXP: totalXP,
       nextLevelXP,
@@ -264,7 +276,6 @@ export const challengeStorage = {
       isAdvancedUnlocked,
       nextUnlockName,
       nextUnlockLevel,
-      hasStreakBonus,
     };
   },
 
@@ -321,20 +332,22 @@ export const challengeStorage = {
   },
 
   /**
-   * Save challenge result and record completion for today + compute XP rewards
+   * Save challenge result, advance permanent XP and unlock progress
    */
-  saveChallengeResult(result: ChallengeResult): { xpEarned: number; isFirstBoost: boolean; hasStreakBonus: boolean } {
+  saveChallengeResult(result: ChallengeResult): {
+    xpEarned: number;
+    baseXP: number;
+    accuracyBonus: number;
+    isFirstBoost: boolean;
+  } {
     const today = getTodayDateString();
     const existingHistory = challengeStorage.getHistory();
     const isFirstChallenge = existingHistory.length === 0;
-    const currentStreak = challengeStorage.getStreakCount();
-    const hasStreakBonus = currentStreak > 0;
 
-    // Calculate XP earned in this session
-    let sessionXP = 100; // Base challenge reward
-    if (isFirstChallenge) sessionXP += 100; // First Challenge Kickstart Boost (100 -> 200 XP -> Instant Level 2!)
-    if (hasStreakBonus) sessionXP += 50; // Daily Consistency Boost (+50 XP)
-    if (result.overallScore >= 85) sessionXP += 25; // Accuracy Milestone Bonus (+25 XP)
+    const baseXP = 100;
+    const firstBoostXP = isFirstChallenge ? 100 : 0;
+    const accuracyBonus = result.overallScore >= 85 ? 25 : 0;
+    const sessionXP = baseXP + firstBoostXP + accuracyBonus;
 
     const currentTotalXP = challengeStorage.getTotalXP();
     const newTotalXP = currentTotalXP + sessionXP;
@@ -344,7 +357,7 @@ export const challengeStorage = {
     storage.set(KEYS.TODAY_RESULT, JSON.stringify(result));
     storage.set(KEYS.ONBOARDING_SEEN, 'true');
 
-    // Estimate words in this session
+    // Estimate words spoken
     const currentWords = challengeStorage.getTotalWordsSpoken();
     const wordsInSession = result.difficulty === 'advanced' ? 45 : result.difficulty === 'intermediate' ? 35 : 25;
     storage.set(KEYS.TOTAL_WORDS_SPOKEN, String(currentWords + wordsInSession));
@@ -355,8 +368,9 @@ export const challengeStorage = {
 
     return {
       xpEarned: sessionXP,
+      baseXP,
+      accuracyBonus,
       isFirstBoost: isFirstChallenge,
-      hasStreakBonus,
     };
   },
 
@@ -395,7 +409,7 @@ export const challengeStorage = {
   },
 
   /**
-   * 30-Day Activity History Array
+   * 30-Day Activity History Array (GitHub contribution mosaic)
    */
   get30DayActivityMap(): ActivityDay[] {
     const history = challengeStorage.getHistory();
@@ -425,47 +439,6 @@ export const challengeStorage = {
   },
 
   /**
-   * Weekly streak matrix for Mon - Sun of the current week
-   */
-  getWeeklyStreakMatrix(): DayStreakItem[] {
-    const history = challengeStorage.getHistory();
-    const completedDateSet = new Set<string>();
-    history.forEach((h) => {
-      if (h.completedAt) {
-        completedDateSet.add(h.completedAt.split('T')[0]);
-      }
-    });
-
-    const now = new Date();
-    const todayStr = getTodayDateString();
-    const currentDayOfWeek = now.getDay();
-    const distanceToMonday = (currentDayOfWeek + 6) % 7;
-    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - distanceToMonday);
-
-    const weekDays: DayStreakItem[] = [];
-    const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    const dayFullNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-    for (let i = 0; i < 7; i++) {
-      const dayDate = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
-      const year = dayDate.getFullYear();
-      const month = String(dayDate.getMonth() + 1).padStart(2, '0');
-      const day = String(dayDate.getDate()).padStart(2, '0');
-      const dateStr = `${year}-${month}-${day}`;
-
-      weekDays.push({
-        dayName: dayFullNames[i],
-        shortLabel: dayLabels[i],
-        dateStr,
-        isToday: dateStr === todayStr,
-        completed: completedDateSet.has(dateStr),
-      });
-    }
-
-    return weekDays;
-  },
-
-  /**
    * Check if onboarding flow has been seen/completed
    */
   hasSeenOnboarding(): boolean {
@@ -476,55 +449,6 @@ export const challengeStorage = {
 
   setOnboardingSeen(): void {
     storage.set(KEYS.ONBOARDING_SEEN, 'true');
-  },
-
-  /**
-   * Calculate consecutive day streak count
-   */
-  getStreakCount(): number {
-    const history = challengeStorage.getHistory();
-    if (history.length === 0) return 0;
-
-    const dateSet = new Set<string>();
-    history.forEach((h) => {
-      if (h.completedAt) {
-        const dateStr = h.completedAt.split('T')[0];
-        dateSet.add(dateStr);
-      }
-    });
-
-    const sortedDates = Array.from(dateSet).sort().reverse();
-    if (sortedDates.length === 0) return 0;
-
-    const today = getTodayDateString();
-    const now = new Date();
-    const yesterdayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-    const yesterdayStr = `${yesterdayDate.getFullYear()}-${String(yesterdayDate.getMonth() + 1).padStart(2, '0')}-${String(yesterdayDate.getDate()).padStart(2, '0')}`;
-
-    const mostRecent = sortedDates[0];
-    if (mostRecent !== today && mostRecent !== yesterdayStr) {
-      return 0;
-    }
-
-    let streak = 0;
-    let expectedDate = new Date(mostRecent);
-
-    for (const dateStr of sortedDates) {
-      const parts = dateStr.split('-').map(Number);
-      const curDate = new Date(parts[0], parts[1] - 1, parts[2]);
-
-      const diffTime = expectedDate.getTime() - curDate.getTime();
-      const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
-
-      if (diffDays === 0) {
-        streak++;
-        expectedDate = new Date(curDate.getFullYear(), curDate.getMonth(), curDate.getDate() - 1);
-      } else {
-        break;
-      }
-    }
-
-    return streak;
   },
 
   /**

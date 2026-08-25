@@ -1,41 +1,49 @@
-# 🎙️ SayWise - Daily Speaking & Writing Habit
+# 🎙️ SayWise - Daily Spoken English Practice
 
-> Build natural English communication confidence in just **2 focused minutes a day** with instant AI-powered speech analysis and grammar coaching.
+> Build natural spoken English confidence in just **2 focused minutes a day** with instant AI-powered speech analysis and permanent mastery progression.
 
-SayWise is a high-speed, mobile-first daily practice app built with **React Native (Expo SDK 54)** and powered by **Google Gemini 2.5 Flash**.
+SayWise is a high-speed, mobile-first daily speaking app built with **React Native (Expo SDK 54)** and powered by **Google Gemini 2.5 Flash**.
 
 ---
 
-## ✨ Features & Upgrades
+## ✨ Features & Architecture
 
-- **🎯 Dual-Mode Habit Engine:**
-  - **🎙️ Speaking Practice (Always Unlocked - Level 1+):** Read curated paragraphs aloud with live 11-bar equalizer waveforms and instant phoneme-level IPA articulation analysis.
-  - **✍️ Writing Practice (Unlocks at Level 2 🔒):** Compose short responses to daily topic prompts with instant AI evaluation for grammar accuracy, vocabulary richness, sentence flow, and a polished native rewrite.
-- **🚀 1-Tap Zero-Friction Launch:** Tapping any unlocked practice card immediately opens today's challenge with zero decision fatigue.
-- **🌐 Unified Global Difficulty Settings:** Select your tier once in Settings (**Beginner 🌱**, **Intermediate ⚡**, or **Advanced 👑**), and it automatically tailors both Speaking and Writing curricula globally.
-- **🏆 Gamified Level & XP Progression Engine:**
-  - **🚀 First-Time Kickstart Boost (Level 1 ➔ 2):** Completing your 1st Speaking Challenge awards `+200 XP` (`100 Base + 100 Kickstart Boost`) for an **instant level up to Level 2** and unlocks Writing Mode!
-  - **🔥 Daily Streak Consistency Multiplier (Level 2 ➔ 3+):**
-    - Base requirement: 3 challenges to level up.
-    - **With Active Daily Streak:** Earn `+50 XP` bonus per session — **leveling up in only 2 challenges**!
+- **🚀 1-Tap Zero-Friction Launch:** Tapping *"Start Today's Challenge"* immediately opens today's reading challenge with zero decision fatigue.
+- **🏆 Permanent Mastery & XP Progression Engine (Zero Anxiety):**
+  - **No Punitive Streaks:** Say goodbye to broken-streak anxiety. Progress and levels **NEVER reset to zero** — every single 2-minute session permanently builds your speaking ability.
+  - **🚀 First-Time Kickstart Boost (Level 1 ➔ 2):** Completing your 1st challenge awards `+200 XP` (`100 Base + 100 Kickstart Boost`) for an **instant level up to Level 2**!
+  - **🎯 Precision Articulation Rewards:** Scoring 85%+ crisp pronunciation awards `+25 Bonus XP`.
+  - **🥋 Progressive Speaker Ranks (Levels 1–10):**
+    - *Voice Novice 🌱 ➔ Cadence Apprentice 🎯 ➔ Rhythm Adept 🌿 ➔ Speech Practitioner 💫 ➔ Fluent Speaker ⚡ ➔ Voice Grandmaster 👑*
   - **⚡ Tier Unlock Milestones:**
     - **Level 1–4:** Beginner Mode 🌱
-    - **Level 5 Unlock:** Intermediate Mode ⚡ (unlocked via XP consistency)
-    - **Level 10 Unlock:** Advanced Mastery Mode 👑
+    - **Level 5 Unlock:** Intermediate Mode ⚡ (`1100 XP` permanent milestone)
+    - **Level 10 Unlock:** Advanced Mastery Mode 👑 (`3600 XP` permanent milestone)
+- **🧠 NanoQwen On-Device Curriculum Engine:**
+  - 30+ curated daily practice scenarios across all difficulty tiers.
+  - Contextual openers and diverse topics (everyday routines, mindfulness, teamwork, AI ethics, persuasive rhetoric).
+  - Dynamic phoneme articulatory targets (e.g. *Vowel elongation, Consonant clusters, Phrasing pauses*).
 - **⚙️ Settings & Level Management Screen:**
   - Top header **Gear Button** (`settings-outline`) on the Home screen.
-  - Difficulty tier selector with lock badges (`🔒 Unlocks at Level 5`).
-  - 30-Day Vocal Habit activity history matrix (GitHub contribution style).
-  - Lifetime speaking metrics (words spoken, minutes practiced, daily streak).
-- **🔤 Interactive Word-Level IPA Breakdown (Speaking):**
-  - **Color-Coded Word Chips:** Every word is color-coded by articulation accuracy (🟢 Crisp, 🟡 Review, 🔴 Needs Work).
-  - **Tap-to-Inspect Phonetic Modal:** View IPA transcriptions (e.g. `[ /ˈkɑːɡ.nə.tɪv/ ]`) and targeted mouth/tongue positioning tips.
+  - Difficulty tier selector with clean lock badges (`🔒 Unlocks at Level 5`).
+  - **📅 30-Day Vocal Activity Matrix:** Clean GitHub-style contribution matrix neatly organized in Settings.
+  - Lifetime speaking metrics (total words spoken, practice minutes, total days completed).
+- **🔤 Interactive Word-Level IPA Breakdown:**
+  - **Color-Coded Word Chips:** Every word in your reading is color-coded by articulation accuracy:
+    - 🟢 **Crisp Articulation (85+ Score)**
+    - 🟡 **Review / Minor Slip**
+    - 🔴 **Needs Work / Distortion**
+  - **Tap-to-Inspect Phonetic Modal:** Tap any word to view its **International Phonetic Alphabet (IPA)** transcription (e.g. `[ /ˈkɑːɡ.nə.tɪv/ ]`) and targeted mouth/tongue positioning tips.
 - **🎧 Audio Replay & Shadowing Player:**
-  - Replay your recorded take with **`1.0x` (Normal)** and **`0.75x` (Slow-Mo)** playback speed toggle.
+  - Replay your recorded take directly on the Results screen.
+  - **`1.0x` (Normal)** and **`0.75x` (Slow-Mo)** playback speed toggle for deep syllable calibration.
+- **🌊 Dynamic Live Waveform Equalizer:**
+  - 11-bar smooth audio equalizer pulsing rhythmically during speech recording.
 - **🤖 Gemini 2.5 Flash Evaluation Engine:**
   - **Overall Score (0–100)** with visual metric progress bars.
+  - **Pronunciation, Accuracy, Fluency, and Pacing** breakdowns.
+  - **Words Per Minute (WPM)** speed calculation.
   - **Actionable Coaching Takeaways:** 1 top strength + 1 key focus area.
-- **🔥 Consecutive Day Streak Tracking:** Streak flame milestones that grow with daily practice.
 - **🔒 Privacy First:** Ephemeral audio recordings are deleted immediately following evaluation.
 - **⚡ Zero-Lag Architecture:** Instant 0ms screen navigation with offline **MMKV** key-value persistence.
 
@@ -45,15 +53,12 @@ SayWise is a high-speed, mobile-first daily practice app built with **React Nati
 
 ```mermaid
 graph TD
-    A[🏠 Home Screen] -->|🎙️ Speaking Mode| C[🎙️ Speaking Challenge & Live Waveform]
-    A -->|✍️ Writing Mode (Lvl 2+)| W[✍️ Writing Practice & Editor]
+    A[🏠 Home Screen] -->|1-Tap Start| C[🎙️ Speaking Challenge & Live Waveform]
     A -->|⚙️ Settings Icon| S[⚙️ Settings, Levels & 30-Day Map]
     C -->|Read Aloud & Record| D[🤖 Gemini 2.5 Flash Audio Analysis]
-    W -->|Submit Response| D2[🤖 Gemini 2.5 Flash Grammar Analysis]
-    D -->|Multimodal Speech Evaluation| E[📊 Speaking Results & IPA Modal]
-    D2 -->|Grammar & Rewrite Evaluation| WR[📊 Writing Results & Native Rewrite]
-    E -->|Complete Challenge| H[🎉 Victory, XP Boost & Streak Milestone]
-    WR -->|Complete Challenge| H
+    D -->|Multimodal Speech Evaluation| E[📊 Results Dashboard & Audio Player]
+    E -->|Tap Word| F[🔤 IPA Phonetic Breakdown Modal]
+    E -->|Complete Challenge| H[🎉 Victory, Permanent XP & Rank Update]
     H -->|Return Home| A
 ```
 
@@ -104,13 +109,11 @@ EXPO_PUBLIC_GEMINI_API_KEY=your_actual_gemini_api_key_here
 ### 3. Run the App
 
 #### Android (Development Build):
-
 ```bash
 npx expo run:android
 ```
 
 #### Metro Bundler:
-
 ```bash
 npx expo start
 ```
@@ -126,28 +129,30 @@ saywise/
 │   ├── components/            # Reusable UI components
 │   │   ├── AudioShadowPlayer.tsx # Take audio player with 1.0x/0.75x speed toggle
 │   │   ├── Button.tsx         # Tactile button with animated scale feedback
+│   │   ├── DifficultyCard.tsx # Radio tier selection card
 │   │   ├── Header.tsx         # Top app navigation bar
 │   │   ├── ProgressBar.tsx    # Animated metric progress bar
 │   │   ├── RecordingVisualizer.tsx # Live 11-bar audio recording equalizer
 │   │   ├── ScoreCard.tsx      # Dashboard ring score & 4-metric progress bars
 │   │   └── WordPhoneticModal.tsx # Tap-to-inspect IPA & articulation modal
+│   ├── data/                  # Offline curriculum & generation manifold
+│   │   └── challenges.ts      # NanoQwen synthesis engine & 30+ daily topics
 │   ├── navigation/            # Navigation routing
 │   │   └── AppNavigator.tsx   # Lightweight, instant screen state switcher
 │   ├── screens/               # Core application screens
-│   │   ├── WelcomeScreen.tsx  # Home dashboard, dual mode cards & level progress
+│   │   ├── WelcomeScreen.tsx  # Home dashboard, level progress & 1-tap start
 │   │   ├── SettingsScreen.tsx # Level progression, locked tiers & 30-day map
 │   │   ├── ChallengeScreen.tsx# Read-aloud paragraph & live waveform recording
-│   │   ├── WritingChallengeScreen.tsx # Prompt composition & live word counter
 │   │   ├── AnalysisScreen.tsx # AI audio processing & pulsing visualizer
 │   │   ├── ResultScreen.tsx   # Word-level chips, audio playback & score card
-│   │   ├── WritingResultScreen.tsx # Grammar dashboard, corrections & native rewrite
+│   │   ├── DifficultyScreen.tsx # Standalone tier switcher
 │   │   └── CompletionScreen.tsx# Streak celebration, XP awards & summary
 │   ├── services/              # API & Audio Business Logic
-│   │   ├── analysisService.ts # Gemini 2.5 Flash audio & text grammar evaluation
-│   │   ├── challengeService.ts# Curated daily speaking & writing curriculum
+│   │   ├── analysisService.ts # Gemini 2.5 Flash audio transcription, scoring & IPA
+│   │   ├── challengeService.ts# Daily speaking challenge retrieval
 │   │   └── recordingService.ts# Expo Audio lifecycle & cache management
 │   ├── storage/               # Offline Persistence
-│   │   └── challengeStorage.ts# MMKV level engine, streak counter & 30-day activity
+│   │   └── challengeStorage.ts# MMKV level engine, permanent XP & 30-day activity
 │   ├── theme/                 # Design tokens & color system
 │   └── types/                 # TypeScript interfaces and data models
 ├── App.tsx                    # Application entry root with SafeAreaProvider
@@ -163,3 +168,9 @@ saywise/
 
 - Sensitive credentials (Gemini API keys) are strictly managed via environment variables (`.env`) and excluded from source control via `.gitignore`.
 - Temporary recording audio clips are deleted immediately after AI evaluation.
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License - feel free to customize and use it for your own speaking practice!

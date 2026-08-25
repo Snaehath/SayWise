@@ -1,9 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
-import { challengeStorage } from '../storage/challengeStorage';
+import { challengeStorage, UserLevelInfo } from '../storage/challengeStorage';
 import { ChallengeResult } from '../types/result';
 
 interface CompletionScreenProps {
@@ -11,25 +11,25 @@ interface CompletionScreenProps {
   onComeAgain: () => void;
 }
 
-export const CompletionScreen: React.FC<CompletionScreenProps> = ({
-  result,
-  onComeAgain,
-}) => {
+export const CompletionScreen: React.FC<CompletionScreenProps> = ({ result, onComeAgain }) => {
   const insets = useSafeAreaInsets();
-  const streakCount = challengeStorage.getStreakCount();
-  const totalWords = challengeStorage.getTotalWordsSpoken();
-
-  // Animation values
-  const scaleAnim = useRef(new Animated.Value(0.6)).current;
+  const scaleAnim = useRef(new Animated.Value(0.7)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
-  const streakPopAnim = useRef(new Animated.Value(0.8)).current;
+  const rankPopAnim = useRef(new Animated.Value(0.8)).current;
+
+  const [totalWords, setTotalWords] = useState(0);
+  const [levelInfo, setLevelInfo] = useState<UserLevelInfo>(challengeStorage.getLevelInfo());
 
   useEffect(() => {
+    setTotalWords(challengeStorage.getTotalWordsSpoken());
+    setLevelInfo(challengeStorage.getLevelInfo());
+
+    // Enter animations
     Animated.parallel([
       Animated.spring(scaleAnim, {
         toValue: 1,
-        friction: 5,
         tension: 50,
+        friction: 6,
         useNativeDriver: true,
       }),
       Animated.timing(opacityAnim, {
@@ -37,17 +37,18 @@ export const CompletionScreen: React.FC<CompletionScreenProps> = ({
         duration: 400,
         useNativeDriver: true,
       }),
-      Animated.sequence([
-        Animated.delay(200),
-        Animated.spring(streakPopAnim, {
-          toValue: 1,
-          friction: 4,
-          tension: 70,
-          useNativeDriver: true,
-        }),
-      ]),
+      Animated.spring(rankPopAnim, {
+        toValue: 1,
+        delay: 200,
+        tension: 60,
+        friction: 7,
+        useNativeDriver: true,
+      }),
     ]).start();
   }, []);
+
+  const isHighAccuracy = result.overallScore >= 85;
+  const earnedXP = 100 + (isHighAccuracy ? 25 : 0);
 
   return (
     <View
@@ -57,7 +58,7 @@ export const CompletionScreen: React.FC<CompletionScreenProps> = ({
       <View className="flex-1 px-6 justify-center items-center">
         {/* Animated Trophy Celebration Icon */}
         <Animated.View
-          className="items-center justify-center mb-5"
+          className="items-center justify-center mb-4"
           style={[
             {
               transform: [{ scale: scaleAnim }],
@@ -65,19 +66,19 @@ export const CompletionScreen: React.FC<CompletionScreenProps> = ({
             },
           ]}
         >
-          <View className="w-28 h-28 rounded-full bg-emerald-50 items-center justify-center shadow-lg shadow-emerald-500/20 border-2 border-emerald-200">
-            <Ionicons name="trophy" size={54} color="#059669" />
+          <View className="w-24 h-24 rounded-full bg-emerald-50 items-center justify-center shadow-lg shadow-emerald-500/20 border-2 border-emerald-200">
+            <Ionicons name="trophy" size={48} color="#059669" />
           </View>
         </Animated.View>
 
-        {/* Streak Boost Pill */}
+        {/* Level Rank Pill (Zero Anxiety) */}
         <Animated.View
-          style={{ transform: [{ scale: streakPopAnim }] }}
-          className="flex-row items-center bg-amber-50 px-4 py-2 rounded-full border border-amber-300 shadow-sm mb-3"
+          style={{ transform: [{ scale: rankPopAnim }] }}
+          className="flex-row items-center bg-indigo-50 px-4 py-2 rounded-full border border-indigo-200 shadow-sm mb-3"
         >
-          <Ionicons name="flame" size={22} color="#EA580C" style={{ marginRight: 6 }} />
-          <Text className="text-base font-extrabold text-amber-800">
-            {streakCount} Day Streak Active!
+          <Ionicons name="sparkles" size={16} color="#4F46E5" style={{ marginRight: 6 }} />
+          <Text className="text-sm font-extrabold text-indigo-900">
+            {levelInfo.title} • Level {levelInfo.level}
           </Text>
         </Animated.View>
 
@@ -111,11 +112,11 @@ export const CompletionScreen: React.FC<CompletionScreenProps> = ({
           <View className="h-[1px] bg-slate-100 my-2.5" />
 
           <View className="flex-row items-center justify-between py-1">
-            <Text className="text-sm font-medium text-slate-500">XP Reward</Text>
-            <View className="flex-row items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
-              <Ionicons name="sparkles" size={13} color="#4F46E5" />
-              <Text className="text-sm font-extrabold text-indigo-700">
-                +{streakCount > 0 ? 150 : 100} XP
+            <Text className="text-sm font-medium text-slate-500">XP Earned</Text>
+            <View className="flex-row items-center gap-1 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+              <Ionicons name="sparkles" size={13} color="#059669" />
+              <Text className="text-sm font-extrabold text-emerald-700">
+                +{earnedXP} XP
               </Text>
             </View>
           </View>
@@ -123,8 +124,10 @@ export const CompletionScreen: React.FC<CompletionScreenProps> = ({
           <View className="h-[1px] bg-slate-100 my-2.5" />
 
           <View className="flex-row items-center justify-between py-1">
-            <Text className="text-sm font-medium text-slate-500">Total Words Spoken</Text>
-            <Text className="text-base font-extrabold text-emerald-600">~{totalWords} words</Text>
+            <Text className="text-sm font-medium text-slate-500">Total Practice Days</Text>
+            <Text className="text-base font-extrabold text-slate-800">
+              {levelInfo.totalCompletedDays} Days
+            </Text>
           </View>
         </View>
       </View>

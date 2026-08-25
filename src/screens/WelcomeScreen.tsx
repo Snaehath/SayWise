@@ -20,7 +20,6 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const insets = useSafeAreaInsets();
   const [isCompletedToday, setIsCompletedToday] = useState(false);
   const [todayResult, setTodayResult] = useState<ChallengeResult | null>(null);
-  const [streakCount, setStreakCount] = useState(0);
   const [isNewUser, setIsNewUser] = useState(true);
   const [totalWords, setTotalWords] = useState(0);
   const [totalMinutes, setTotalMinutes] = useState(0);
@@ -29,7 +28,6 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const loadState = () => {
     const completed = challengeStorage.isCompletedToday();
     const result = challengeStorage.getTodayResult();
-    const streak = challengeStorage.getStreakCount();
     const hasSeen = challengeStorage.hasSeenOnboarding();
     const history = challengeStorage.getHistory();
     const words = challengeStorage.getTotalWordsSpoken();
@@ -38,7 +36,6 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
     setIsCompletedToday(completed);
     setTodayResult(result);
-    setStreakCount(streak);
     setIsNewUser(!hasSeen && history.length === 0);
     setTotalWords(words);
     setTotalMinutes(minutes);
@@ -64,7 +61,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Header with Brand, Streak Pill & Settings Gear Button */}
+        {/* Top Header with Brand, Permanent XP Pill & Settings Gear Button */}
         <View className="flex-row items-center justify-between mb-4 mt-1">
           <View className="flex-row items-center">
             <View className="w-11 h-11 rounded-2xl bg-indigo-600 items-center justify-center shadow-md shadow-indigo-500/25 mr-3">
@@ -77,26 +74,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           </View>
 
           <View className="flex-row items-center gap-2">
-            {/* Streak Pill */}
-            <View
-              className={`flex-row items-center px-3 py-1.5 rounded-full border shadow-sm ${
-                streakCount > 0
-                  ? 'bg-amber-50 border-amber-200'
-                  : 'bg-slate-100 border-slate-200'
-              }`}
-            >
-              <Ionicons
-                name="flame"
-                size={18}
-                color={streakCount > 0 ? '#EA580C' : '#94A3B8'}
-                style={{ marginRight: 4 }}
-              />
-              <Text
-                className={`text-base font-extrabold ${
-                  streakCount > 0 ? 'text-amber-700' : 'text-slate-500'
-                }`}
-              >
-                {streakCount}
+            {/* Permanent XP / Practice Pill (Zero Anxiety) */}
+            <View className="flex-row items-center px-3 py-1.5 rounded-full border border-indigo-200 bg-indigo-50 shadow-sm">
+              <Ionicons name="sparkles" size={15} color="#4F46E5" style={{ marginRight: 4 }} />
+              <Text className="text-sm font-extrabold text-indigo-700">
+                {levelInfo.totalXP} XP
               </Text>
             </View>
 
@@ -111,7 +93,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           </View>
         </View>
 
-        {/* 🎮 Level & XP Progress Card */}
+        {/* 🎮 Permanent Level & XP Progress Card (Boot.dev-Style) */}
         <Pressable
           onPress={onOpenSettings}
           className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-4 active:bg-slate-50"
@@ -136,12 +118,12 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             </View>
           </View>
 
-          {/* Progress bar towards next level */}
+          {/* Progress bar towards next level (Never Resets) */}
           {levelInfo.level < 10 && (
             <View className="mt-1">
               <View className="flex-row justify-between items-center mb-1">
                 <Text className="text-xs font-semibold text-slate-500">
-                  {levelInfo.nextUnlockName ? `Unlock ${levelInfo.nextUnlockName}:` : 'To Level Up:'}
+                  {levelInfo.nextUnlockName ? `Next Tier (${levelInfo.nextUnlockName}):` : 'To Next Rank:'}
                 </Text>
                 <Text className="text-xs font-extrabold text-indigo-600">
                   {levelInfo.totalXP} / {levelInfo.nextLevelXP} XP
@@ -156,22 +138,19 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             </View>
           )}
 
-          {/* Gamified XP Boost Indicator */}
+          {/* Habit Encouragement Tag */}
           <View className="bg-slate-50 rounded-xl px-3 py-1.5 flex-row items-center justify-between border border-slate-200">
             {levelInfo.level === 1 ? (
               <View className="flex-row items-center gap-1.5">
                 <Ionicons name="rocket" size={14} color="#6366F1" />
                 <Text className="text-[11px] font-bold text-indigo-700">First Challenge 2x Boost (Instant Level 2!)</Text>
               </View>
-            ) : levelInfo.hasStreakBonus ? (
-              <View className="flex-row items-center gap-1.5">
-                <Ionicons name="flame" size={14} color="#EA580C" />
-                <Text className="text-[11px] font-bold text-amber-700">+50 XP Streak Bonus Active (Fast Level-Up!)</Text>
-              </View>
             ) : (
               <View className="flex-row items-center gap-1.5">
-                <Ionicons name="sparkles" size={14} color="#64748B" />
-                <Text className="text-[11px] font-medium text-slate-600">Practice daily for +50 XP streak bonuses</Text>
+                <Ionicons name="shield-checkmark" size={14} color="#059669" />
+                <Text className="text-[11px] font-bold text-emerald-700">
+                  {levelInfo.totalCompletedDays} Practice Days Completed • Progress is Permanent
+                </Text>
               </View>
             )}
             <Ionicons name="chevron-forward" size={12} color="#94A3B8" />
@@ -229,7 +208,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         {!isNewUser && (
           <>
             {isCompletedToday && todayResult ? (
-              /* Completed Today State */
+              /* Completed Today State (Closure & Satisfaction) */
               <View className="bg-emerald-50/70 rounded-3xl p-6 border border-emerald-300 mb-4 shadow-sm">
                 <View className="flex-row justify-between items-center mb-2.5">
                   <View className="flex-row items-center gap-2">
@@ -244,7 +223,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                   "{todayResult.challengeTitle}"
                 </Text>
                 <Text className="text-sm text-slate-700 mb-4 leading-5">
-                  Great job keeping your {streakCount} day streak alive! Come back tomorrow for your next speaking challenge.
+                  Outstanding effort! Your vocal muscle memory is strengthening every session. Rest well and come back tomorrow for fresh calibration.
                 </Text>
 
                 {/* Growth Metric Stats Row */}
@@ -253,9 +232,13 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                     <Text className="text-xs text-slate-500 font-semibold">Words Spoken</Text>
                     <Text className="text-base font-extrabold text-indigo-600">~{totalWords}</Text>
                   </View>
-                  <View className="flex-1 items-center">
-                    <Text className="text-xs text-slate-500 font-semibold">Minutes Practiced</Text>
+                  <View className="flex-1 items-center border-r border-slate-100 pr-2">
+                    <Text className="text-xs text-slate-500 font-semibold">Practice Time</Text>
                     <Text className="text-base font-extrabold text-emerald-600">{totalMinutes} min</Text>
+                  </View>
+                  <View className="flex-1 items-center">
+                    <Text className="text-xs text-slate-500 font-semibold">Total Days</Text>
+                    <Text className="text-base font-extrabold text-amber-600">{levelInfo.totalCompletedDays}</Text>
                   </View>
                 </View>
 
@@ -271,7 +254,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                     />
                   )}
                   <Button
-                    title="Try Again"
+                    title="Practice Again"
                     onPress={handleStart}
                     variant="primary"
                     size="md"
@@ -286,7 +269,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 <View className="flex-row justify-between items-center mb-3">
                   <View className="flex-row items-center">
                     <View className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2" />
-                    <Text className="text-xs font-bold tracking-wider text-emerald-700">TODAY'S CHALLENGE</Text>
+                    <Text className="text-xs font-bold tracking-wider text-emerald-700">TODAY'S CALIBRATION</Text>
                   </View>
                   <View className="bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
                     <Text className="text-xs font-bold text-indigo-700 capitalize">{levelInfo.activeDifficulty}</Text>
@@ -294,13 +277,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 </View>
 
                 <Text className="text-2xl font-extrabold text-slate-900 leading-8 mb-2">
-                  {streakCount > 0
-                    ? `Keep your ${streakCount} day streak active!`
-                    : 'Ready for today’s speaking practice?'}
+                  Ready for today’s speaking practice?
                 </Text>
 
                 <Text className="text-sm text-slate-600 mb-6 leading-5">
-                  Take 2 minutes to read your daily paragraph aloud and calibrate your pronunciation with instant AI feedback.
+                  Take 2 focused minutes to read today’s paragraph aloud and calibrate your rhythm with instant AI evaluation.
                 </Text>
 
                 <Button
@@ -319,7 +300,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         <View className="bg-white rounded-2xl py-4 px-4 border border-slate-200 shadow-sm my-1 items-center justify-center">
           <Text className="text-sm text-slate-600 italic leading-5 text-center font-medium">
             {isCompletedToday
-              ? '"Consistency is the mother of mastery. You showed up today — rest well and come back stronger tomorrow!"'
+              ? '"Progress in spoken clarity is cumulative. Every session permanently sharpens your tone and confidence."'
               : '"Clear speech begins with small daily habits. Just two focused minutes today builds natural confidence."'}
           </Text>
         </View>
