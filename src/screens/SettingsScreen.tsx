@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ActivityHeatmap } from '../components/ActivityHeatmap';
 import { Header } from '../components/Header';
+import { LevelCard } from '../components/LevelCard';
 import { ActivityDay, challengeStorage, UserLevelInfo } from '../storage/challengeStorage';
 import { Difficulty } from '../types/challenge';
 
@@ -61,8 +63,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
     );
   };
 
-  const completedDaysCount = activityMap.filter((a) => a.completed).length;
-
   return (
     <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <Header title="Settings & Level" onBack={onBack} />
@@ -71,52 +71,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* User Level Card */}
-        <View className="bg-indigo-600 rounded-3xl p-6 shadow-md shadow-indigo-500/25 mb-5">
-          <View className="flex-row items-center justify-between mb-3">
-            <View>
-              <Text className="text-xs font-bold text-indigo-200 uppercase tracking-wider">SPEAKER STATUS</Text>
-              <View className="flex-row items-center gap-2 mt-0.5">
-                <Text className="text-2xl font-extrabold text-white">
-                  Level {levelInfo.level}
-                </Text>
-                <Text className="text-sm font-bold text-indigo-200">•</Text>
-                <Text className="text-sm font-extrabold text-emerald-300">
-                  {levelInfo.totalXP} XP
-                </Text>
-              </View>
-            </View>
-            <View className="bg-white/20 px-3.5 py-1.5 rounded-full border border-white/30">
-              <Text className="text-xs font-extrabold text-white">{levelInfo.title}</Text>
-            </View>
-          </View>
-
-          {/* Progress Bar towards Next Level / Unlock */}
-          {levelInfo.level < 10 ? (
-            <View>
-              <View className="flex-row justify-between items-center mb-1.5">
-                <Text className="text-xs font-medium text-indigo-100">
-                  {levelInfo.nextUnlockName ? `Next Tier (${levelInfo.nextUnlockName}):` : 'To Next Level:'}
-                </Text>
-                <Text className="text-xs font-extrabold text-white">
-                  {levelInfo.totalXP} / {levelInfo.nextLevelXP} XP
-                </Text>
-              </View>
-              <View className="h-2 bg-indigo-900/40 rounded-full overflow-hidden">
-                <View
-                  className="h-full bg-emerald-400 rounded-full"
-                  style={{ width: `${levelInfo.levelProgressPercent}%` }}
-                />
-              </View>
-            </View>
-          ) : (
-            <View className="bg-white/10 p-3 rounded-2xl border border-white/20">
-              <Text className="text-xs font-bold text-emerald-300 text-center">
-                🏆 All Difficulty Tiers Unlocked!
-              </Text>
-            </View>
-          )}
-        </View>
+        {/* Reusable User Level Card (Settings Variant) */}
+        <LevelCard levelInfo={levelInfo} variant="settings" />
 
         {/* Difficulty Tier Preferences */}
         <View className="mb-5">
@@ -254,38 +210,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
           </Pressable>
         </View>
 
-        {/* 📅 30-Day Vocal Habit Activity Heatmap (GitHub Style) */}
-        <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-5">
-          <View className="flex-row items-center justify-between mb-3.5">
-            <View className="flex-row items-center gap-2">
-              <Ionicons name="calendar-outline" size={18} color="#6366F1" />
-              <Text className="text-sm font-extrabold text-slate-900">30-Day Activity History</Text>
-            </View>
-            <View className="bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-100">
-              <Text className="text-xs font-bold text-indigo-700">{completedDaysCount} / 30 Days</Text>
-            </View>
-          </View>
-
-          {/* 30-Day Uniform Grid (6 x 5) */}
-          <View className="flex-row flex-wrap gap-2 justify-center">
-            {activityMap.map((day, idx) => (
-              <View
-                key={idx}
-                className={`w-7 h-7 rounded-xl items-center justify-center ${
-                  day.completed
-                    ? 'bg-emerald-500 shadow-sm shadow-emerald-500/25 border border-emerald-600'
-                    : 'bg-slate-100 border border-slate-200'
-                }`}
-              >
-                {day.completed ? (
-                  <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-                ) : (
-                  <View className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                )}
-              </View>
-            ))}
-          </View>
-        </View>
+        {/* 📅 Reusable 30-Day Vocal Habit Activity Heatmap (GitHub Style) */}
+        <ActivityHeatmap activityMap={activityMap} />
 
         {/* Overall Lifetime Stats */}
         <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-6">

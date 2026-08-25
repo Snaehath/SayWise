@@ -3,6 +3,8 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
+import { LevelCard } from '../components/LevelCard';
+import { MetricStatsRow } from '../components/MetricStatsRow';
 import { challengeStorage, UserLevelInfo } from '../storage/challengeStorage';
 import { ChallengeResult } from '../types/result';
 
@@ -24,6 +26,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const [totalWords, setTotalWords] = useState(0);
   const [totalMinutes, setTotalMinutes] = useState(0);
   const [levelInfo, setLevelInfo] = useState<UserLevelInfo>(challengeStorage.getLevelInfo());
+  const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
   const loadState = () => {
     const completed = challengeStorage.isCompletedToday();
@@ -44,6 +47,24 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
   useEffect(() => {
     loadState();
+
+    // Live ticking countdown to next midnight challenge drop
+    const updateCountdown = () => {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(24, 0, 0, 0);
+      const diffMs = midnight.getTime() - now.getTime();
+
+      const hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diffMs / (1000 * 60)) % 60);
+      const seconds = Math.floor((diffMs / 1000) % 60);
+
+      setTimeLeft({ hours, minutes, seconds });
+    };
+
+    updateCountdown();
+    const timer = setInterval(updateCountdown, 1000);
+    return () => clearInterval(timer);
   }, []);
 
   const handleStart = () => {
@@ -74,7 +95,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           </View>
 
           <View className="flex-row items-center gap-2">
-            {/* Permanent XP / Practice Pill (Zero Anxiety) */}
+            {/* Permanent XP Pill (Zero Anxiety) */}
             <View className="flex-row items-center px-3 py-1.5 rounded-full border border-indigo-200 bg-indigo-50 shadow-sm">
               <Ionicons name="sparkles" size={15} color="#4F46E5" style={{ marginRight: 4 }} />
               <Text className="text-sm font-extrabold text-indigo-700">
@@ -94,68 +115,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         </View>
 
         {/* 🎮 Permanent Level & XP Progress Card (Boot.dev-Style) */}
-        <Pressable
+        <LevelCard
+          levelInfo={levelInfo}
           onPress={onOpenSettings}
-          className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-4 active:bg-slate-50"
-        >
-          <View className="flex-row items-center justify-between mb-2.5">
-            <View className="flex-row items-center gap-2.5">
-              <View className="w-10 h-10 rounded-2xl bg-indigo-50 items-center justify-center border border-indigo-100">
-                <Ionicons name="trophy" size={20} color="#4F46E5" />
-              </View>
-              <View>
-                <View className="flex-row items-center gap-1.5">
-                  <Text className="text-base font-extrabold text-slate-900">Level {levelInfo.level}</Text>
-                  <Text className="text-xs font-bold text-slate-400">•</Text>
-                  <Text className="text-xs font-bold text-indigo-600">{levelInfo.totalXP} XP</Text>
-                </View>
-                <Text className="text-xs font-semibold text-slate-500">{levelInfo.title}</Text>
-              </View>
-            </View>
-            <View className="flex-row items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
-              <Text className="text-xs font-bold text-indigo-700 capitalize">{levelInfo.activeDifficulty}</Text>
-              <Ionicons name="chevron-forward" size={12} color="#4F46E5" />
-            </View>
-          </View>
-
-          {/* Progress bar towards next level (Never Resets) */}
-          {levelInfo.level < 10 && (
-            <View className="mt-1">
-              <View className="flex-row justify-between items-center mb-1">
-                <Text className="text-xs font-semibold text-slate-500">
-                  {levelInfo.nextUnlockName ? `Next Tier (${levelInfo.nextUnlockName}):` : 'To Next Rank:'}
-                </Text>
-                <Text className="text-xs font-extrabold text-indigo-600">
-                  {levelInfo.totalXP} / {levelInfo.nextLevelXP} XP
-                </Text>
-              </View>
-              <View className="h-2.5 bg-slate-100 rounded-full overflow-hidden mb-2">
-                <View
-                  className="h-full bg-indigo-600 rounded-full"
-                  style={{ width: `${levelInfo.levelProgressPercent}%` }}
-                />
-              </View>
-            </View>
-          )}
-
-          {/* Habit Encouragement Tag */}
-          <View className="bg-slate-50 rounded-xl px-3 py-1.5 flex-row items-center justify-between border border-slate-200">
-            {levelInfo.level === 1 ? (
-              <View className="flex-row items-center gap-1.5">
-                <Ionicons name="rocket" size={14} color="#6366F1" />
-                <Text className="text-[11px] font-bold text-indigo-700">First Challenge 2x Boost (Instant Level 2!)</Text>
-              </View>
-            ) : (
-              <View className="flex-row items-center gap-1.5">
-                <Ionicons name="shield-checkmark" size={14} color="#059669" />
-                <Text className="text-[11px] font-bold text-emerald-700">
-                  {levelInfo.totalCompletedDays} Practice Days Completed • Progress is Permanent
-                </Text>
-              </View>
-            )}
-            <Ionicons name="chevron-forward" size={12} color="#94A3B8" />
-          </View>
-        </Pressable>
+          variant="home"
+        />
 
         {/* 1. NEW USER ONBOARDING HERO CARD */}
         {isNewUser && (
@@ -208,7 +172,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         {!isNewUser && (
           <>
             {isCompletedToday && todayResult ? (
-              /* Completed Today State (Closure & Satisfaction) */
+              /* Completed Today State (Closure, Countdown & Satisfaction) */
               <View className="bg-emerald-50/70 rounded-3xl p-6 border border-emerald-300 mb-4 shadow-sm">
                 <View className="flex-row justify-between items-center mb-2.5">
                   <View className="flex-row items-center gap-2">
@@ -222,46 +186,38 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 <Text className="text-xl font-extrabold text-slate-900 my-1.5">
                   "{todayResult.challengeTitle}"
                 </Text>
-                <Text className="text-sm text-slate-700 mb-4 leading-5">
+                <Text className="text-sm text-slate-700 mb-3.5 leading-5">
                   Outstanding effort! Your vocal muscle memory is strengthening every session. Rest well and come back tomorrow for fresh calibration.
                 </Text>
 
-                {/* Growth Metric Stats Row */}
-                <View className="flex-row items-center gap-3 bg-white/80 rounded-2xl p-3.5 mb-4 border border-emerald-200">
-                  <View className="flex-1 items-center border-r border-slate-100 pr-2">
-                    <Text className="text-xs text-slate-500 font-semibold">Words Spoken</Text>
-                    <Text className="text-base font-extrabold text-indigo-600">~{totalWords}</Text>
+                {/* Live Countdown Timer to Tomorrow's Challenge */}
+                <View className="flex-row items-center justify-between bg-emerald-100/70 px-4 py-2.5 rounded-2xl border border-emerald-200 mb-3.5">
+                  <View className="flex-row items-center gap-2">
+                    <Ionicons name="timer-outline" size={18} color="#047857" />
+                    <Text className="text-xs font-bold text-emerald-900">Next Daily Challenge In</Text>
                   </View>
-                  <View className="flex-1 items-center border-r border-slate-100 pr-2">
-                    <Text className="text-xs text-slate-500 font-semibold">Practice Time</Text>
-                    <Text className="text-base font-extrabold text-emerald-600">{totalMinutes} min</Text>
-                  </View>
-                  <View className="flex-1 items-center">
-                    <Text className="text-xs text-slate-500 font-semibold">Total Days</Text>
-                    <Text className="text-base font-extrabold text-amber-600">{levelInfo.totalCompletedDays}</Text>
-                  </View>
+                  <Text className="text-xs font-extrabold text-emerald-950">
+                    {String(timeLeft.hours).padStart(2, '0')}h {String(timeLeft.minutes).padStart(2, '0')}m {String(timeLeft.seconds).padStart(2, '0')}s
+                  </Text>
                 </View>
 
-                <View className="flex-row items-center gap-3">
-                  {onViewCompletedResult && (
-                    <Button
-                      title="View Result"
-                      onPress={() => onViewCompletedResult(todayResult)}
-                      variant="secondary"
-                      size="md"
-                      icon={<Ionicons name="stats-chart-outline" size={17} color="#4F46E5" />}
-                      className="flex-1"
-                    />
-                  )}
+                {/* Growth Metric Stats Row (Reusable) */}
+                <MetricStatsRow
+                  wordsSpoken={totalWords}
+                  practiceMinutes={totalMinutes}
+                  totalDays={levelInfo.totalCompletedDays}
+                />
+
+                {/* Dedicated Action Button: View Today's Result & Analysis */}
+                {onViewCompletedResult && (
                   <Button
-                    title="Practice Again"
-                    onPress={handleStart}
+                    title="View Today's Result & Audio"
+                    onPress={() => onViewCompletedResult(todayResult)}
                     variant="primary"
-                    size="md"
-                    icon={<Ionicons name="refresh" size={17} color="#FFFFFF" />}
-                    className="flex-1"
+                    size="lg"
+                    icon={<Ionicons name="stats-chart-outline" size={18} color="#FFFFFF" />}
                   />
-                </View>
+                )}
               </View>
             ) : (
               /* Ready for Daily Challenge (1-Tap Direct Launch) */

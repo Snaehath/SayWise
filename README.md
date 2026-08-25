@@ -9,6 +9,9 @@ SayWise is a high-speed, mobile-first daily speaking app built with **React Nati
 ## ✨ Features & Architecture
 
 - **🚀 1-Tap Zero-Friction Launch:** Tapping *"Start Today's Challenge"* immediately opens today's reading challenge with zero decision fatigue.
+- **⏳ Authentic Daily Quest Ritual & Countdown:**
+  - One focused calibration quest per day to build sustainable habit formation without burnout.
+  - Completed state features a **live ticking countdown timer** (`⏳ Next Daily Challenge in 14h 22m 18s`) and instant access to review your take's analysis and audio.
 - **🏆 Permanent Mastery & XP Progression Engine (Zero Anxiety):**
   - **No Punitive Streaks:** Say goodbye to broken-streak anxiety. Progress and levels **NEVER reset to zero** — every single 2-minute session permanently builds your speaking ability.
   - **🚀 First-Time Kickstart Boost (Level 1 ➔ 2):** Completing your 1st challenge awards `+200 XP` (`100 Base + 100 Kickstart Boost`) for an **instant level up to Level 2**!
@@ -127,10 +130,13 @@ saywise/
 ├── assets/                    # App icons and splash screens
 ├── src/
 │   ├── components/            # Reusable UI components
+│   │   ├── ActivityHeatmap.tsx # 30-day activity matrix (GitHub contribution style)
 │   │   ├── AudioShadowPlayer.tsx # Take audio player with 1.0x/0.75x speed toggle
 │   │   ├── Button.tsx         # Tactile button with animated scale feedback
 │   │   ├── DifficultyCard.tsx # Radio tier selection card
 │   │   ├── Header.tsx         # Top app navigation bar
+│   │   ├── LevelCard.tsx      # Permanent Level & XP progress card
+│   │   ├── MetricStatsRow.tsx # Growth metrics row (words, minutes, total days)
 │   │   ├── ProgressBar.tsx    # Animated metric progress bar
 │   │   ├── RecordingVisualizer.tsx # Live 11-bar audio recording equalizer
 │   │   ├── ScoreCard.tsx      # Dashboard ring score & 4-metric progress bars
@@ -146,7 +152,7 @@ saywise/
 │   │   ├── AnalysisScreen.tsx # AI audio processing & pulsing visualizer
 │   │   ├── ResultScreen.tsx   # Word-level chips, audio playback & score card
 │   │   ├── DifficultyScreen.tsx # Standalone tier switcher
-│   │   └── CompletionScreen.tsx# Streak celebration, XP awards & summary
+│   │   └── CompletionScreen.tsx# Victory celebration, XP awards & summary
 │   ├── services/              # API & Audio Business Logic
 │   │   ├── analysisService.ts # Gemini 2.5 Flash audio transcription, scoring & IPA
 │   │   ├── challengeService.ts# Daily speaking challenge retrieval
