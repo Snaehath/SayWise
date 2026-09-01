@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { RecordingPresets, useAudioRecorder } from 'expo-audio';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,7 +9,7 @@ import { RecordingVisualizer } from '../components/RecordingVisualizer';
 import { recordingService } from '../services/recordingService';
 import { Challenge } from '../types/challenge';
 
-// props
+// types
 interface ChallengeScreenProps {
   challenge: Challenge;
   onBack: () => void;
@@ -25,35 +25,61 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
   const insets = useSafeAreaInsets();
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
 
-  // states
+  // state
   const [isRecording, setIsRecording] = useState(false);
   const [durationSec, setDurationSec] = useState(0);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [isPreparing, setIsPreparing] = useState(false);
+  const [prepSecondsLeft, setPrepSecondsLeft] = useState(challenge.prepSeconds || (challenge.type === 'talk' ? 10 : 0));
+  const [isPrepping, setIsPrepping] = useState(challenge.type === 'talk');
 
   // refs
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const prepTimerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
   const activeUriRef = useRef<string | null>(null);
 
   // effects
   useEffect(() => {
+    if (isPrepping && prepSecondsLeft > 0) {
+      prepTimerRef.current = setInterval(() => {
+        setPrepSecondsLeft((prev) => {
+          if (prev <= 1) {
+            if (prepTimerRef.current) clearInterval(prepTimerRef.current);
+            setIsPrepping(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
     return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
+      if (prepTimerRef.current) clearInterval(prepTimerRef.current);
+    };
+  }, [isPrepping]);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (prepTimerRef.current) clearInterval(prepTimerRef.current);
       try {
         if (audioRecorder.isRecording) {
           audioRecorder.stop();
         }
       } catch {
-        // safe disposal
+        // cleanup
       }
     };
   }, []);
 
   // handlers
   const handleStartRecording = async () => {
+    if (prepTimerRef.current) {
+      clearInterval(prepTimerRef.current);
+      setIsPrepping(false);
+    }
+
     setIsPreparing(true);
     setPermissionDenied(false);
 
@@ -64,7 +90,7 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
         setIsPreparing(false);
         Alert.alert(
           'Microphone Permission Required',
-          'SayWise needs microphone access to record and analyze your speaking practice. Please grant microphone permission to continue.'
+          'SayWise needs microphone access to record and evaluate your speaking session.'
         );
         return;
       }
@@ -82,7 +108,7 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
       }, 1000);
     } catch (error) {
       console.warn('Failed to start recording:', error);
-      Alert.alert('Recording Error', 'Unable to start recording. Please check microphone settings and try again.');
+      Alert.alert('Recording Error', 'Unable to start recording. Please try again.');
     } finally {
       setIsPreparing(false);
     }
@@ -95,162 +121,164 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
     }
 
     try {
+      const uri = audioRecorder.uri;
+      activeUriRef.current = uri;
+
       await audioRecorder.stop();
       setIsRecording(false);
 
-      const totalDuration = Math.max(1, Math.floor((Date.now() - startTimeRef.current) / 1000));
-      const recordedUri = audioRecorder.uri || `temp_rec_${Date.now()}.m4a`;
-      activeUriRef.current = recordedUri;
+      const finalDuration = Math.max(1, durationSec);
 
-      if (totalDuration < 2) {
-        Alert.alert(
-          'Recording Too Short',
-          'Please read the full paragraph aloud so we can accurately evaluate your pronunciation and pacing.',
-          [
-            {
-              text: 'Try Again',
-              onPress: () => {
-                recordingService.deleteTemporaryAudio(recordedUri);
-                setDurationSec(0);
-              },
-            },
-          ]
-        );
+      if (finalDuration < 3) {
+        Alert.alert('Speech Too Short', 'Please speak for at least 3 seconds so the coach can evaluate your cadence.');
         return;
       }
 
-      onFinishRecording(recordedUri, totalDuration);
+      if (uri) {
+        onFinishRecording(uri, finalDuration);
+      } else {
+        Alert.alert('Audio Error', 'Recording not found. Please try again.');
+      }
     } catch (error) {
       console.warn('Failed to stop recording:', error);
       setIsRecording(false);
-      Alert.alert('Recording Error', 'Failed to complete audio recording. Please try again.');
+      Alert.alert('Recording Error', 'Unable to finalize recording.');
     }
   };
 
-  const handleBackPress = () => {
-    if (isRecording) {
-      Alert.alert(
-        'Stop Recording?',
-        'Navigating away will discard your current recording.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Discard & Go Back',
-            style: 'destructive',
-            onPress: async () => {
-              if (timerRef.current) clearInterval(timerRef.current);
-              try {
-                await audioRecorder.stop();
-                if (audioRecorder.uri) {
-                  await recordingService.deleteTemporaryAudio(audioRecorder.uri);
-                }
-              } catch {
-                // ignore
-              }
-              onBack();
-            },
-          },
-        ]
-      );
-    } else {
-      onBack();
+  const getModalityInfo = () => {
+    if (challenge.type === 'read') {
+      return {
+        badge: 'READ ALOUD',
+        instruction: 'Read clearly with natural pauses',
+        icon: 'book-outline',
+        color: '#4F46E5',
+      };
     }
+    return {
+      badge: 'TALK FREELY',
+      instruction: 'Express your thoughts spontaneously',
+      icon: 'mic-outline',
+      color: '#D97706',
+    };
   };
 
-  // helpers
-  const getDifficultyBadge = () => {
-    switch (challenge.difficulty) {
-      case 'beginner':
-        return { label: 'Beginner', bgClass: 'bg-emerald-50', textClass: 'text-emerald-700' };
-      case 'intermediate':
-        return { label: 'Intermediate', bgClass: 'bg-blue-50', textClass: 'text-blue-700' };
-      case 'advanced':
-        return { label: 'Advanced', bgClass: 'bg-purple-50', textClass: 'text-purple-700' };
-    }
-  };
-
-  const badge = getDifficultyBadge();
+  const modality = getModalityInfo();
 
   // render
   return (
     <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
-      {/* header */}
       <Header
-        onBack={handleBackPress}
-        title="Speaking Challenge"
-        rightElement={
-          <View className={`px-2.5 py-1 rounded-full ${badge.bgClass}`}>
-            <Text className={`text-xs font-bold uppercase tracking-wider ${badge.textClass}`}>{badge.label}</Text>
-          </View>
-        }
+        title={challenge.title}
+        onBack={isRecording ? undefined : onBack}
       />
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* challenge title & tags */}
-        <View className="mb-4">
-          <Text className="text-xs font-bold text-indigo-600 tracking-wider uppercase mb-1">
-            DAILY CHALLENGE
-          </Text>
-          <Text className="text-2xl font-extrabold text-slate-900 leading-8 mb-1">{challenge.title}</Text>
+        {/* modality banner */}
+        <View className="flex-row items-center justify-between mb-4">
+          <View className="flex-row items-center bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm">
+            <Ionicons name={modality.icon as unknown as keyof typeof Ionicons.glyphMap} size={14} color={modality.color} />
+            <Text className="text-[11px] font-extrabold ml-1.5 uppercase" style={{ color: modality.color }}>
+              {modality.badge}
+            </Text>
+          </View>
 
-          {challenge.focusAreas && (
-            <View className="flex-row flex-wrap gap-1.5 mt-1">
-              {challenge.focusAreas.map((area, index) => (
-                <View key={index} className="flex-row items-center bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
-                  <Ionicons name="sparkles-outline" size={12} color="#4F46E5" style={{ marginRight: 4 }} />
-                  <Text className="text-[11px] text-slate-600 font-medium">{area}</Text>
-                </View>
-              ))}
+          <Text className="text-xs font-semibold text-slate-400">
+            ~{challenge.estimatedDurationSec || 45}s target
+          </Text>
+        </View>
+
+        {/* focus pill */}
+        {challenge.focusTarget && (
+          <View className="bg-indigo-50/80 rounded-2xl p-3.5 mb-4 border border-indigo-100 flex-row items-center">
+            <Ionicons name="sparkles" size={16} color="#4F46E5" />
+            <View className="ml-2.5 flex-1">
+              <Text className="text-[10px] font-extrabold text-indigo-700 tracking-wider uppercase">Coach Focus Target</Text>
+              <Text className="text-xs font-bold text-indigo-950 mt-0.5">{challenge.focusTarget}</Text>
+            </View>
+          </View>
+        )}
+
+        {/* text card */}
+        <View className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm mb-4">
+          <View className="flex-row items-center mb-3">
+            <Ionicons name={modality.icon as unknown as keyof typeof Ionicons.glyphMap} size={18} color="#6366F1" />
+            <Text className="text-xs font-extrabold text-indigo-600 tracking-wider uppercase ml-2">
+              {modality.instruction}
+            </Text>
+          </View>
+
+          <Text className="text-xl text-slate-900 leading-9 font-normal">
+            {challenge.paragraph || challenge.prompt}
+          </Text>
+
+          {challenge.context && (
+            <View className="mt-4 pt-3 border-t border-slate-100 flex-row items-start">
+              <Ionicons name="information-circle-outline" size={16} color="#64748B" style={{ marginTop: 2 }} />
+              <Text className="text-xs text-slate-500 font-medium ml-1.5 flex-1 leading-5">
+                {challenge.context}
+              </Text>
             </View>
           )}
         </View>
 
-        {/* reading paragraph card */}
-        <View className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm my-3">
-          <View className="flex-row items-center gap-2 mb-3.5">
-            <Ionicons name="volume-medium-outline" size={18} color="#6366F1" />
-            <Text className="text-xs font-extrabold text-indigo-600 tracking-wider uppercase">READ ALOUD CLEARLY</Text>
+        {/* prep banner */}
+        {isPrepping && prepSecondsLeft > 0 && !isRecording && (
+          <View className="bg-indigo-50 rounded-2xl p-4 border border-indigo-100 flex-row items-center justify-between mb-4">
+            <View className="flex-row items-center">
+              <Ionicons name="timer-outline" size={20} color="#4F46E5" />
+              <View className="ml-2.5">
+                <Text className="text-xs font-bold text-indigo-900">Take 10s to organize your thoughts</Text>
+                <Text className="text-[11px] text-indigo-600">Starting in {prepSecondsLeft}s...</Text>
+              </View>
+            </View>
+            <Pressable
+              onPress={handleStartRecording}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              unstable_pressDelay={0}
+              className="px-3 py-1.5 rounded-xl bg-indigo-600 active:opacity-80"
+            >
+              <Text className="text-xs font-bold text-white">Ready Now</Text>
+            </Pressable>
           </View>
-          <Text className="text-xl text-slate-900 leading-9 font-normal">{challenge.paragraph}</Text>
-        </View>
+        )}
 
-        {/* permission warning */}
+        {/* permission alert */}
         {permissionDenied && (
-          <View className="flex-row items-center bg-red-50 p-4 rounded-2xl border border-red-200 mt-3">
+          <View className="flex-row items-center bg-red-50 p-4 rounded-2xl border border-red-200 mt-2">
             <Ionicons name="alert-circle" size={20} color="#EF4444" style={{ marginRight: 8 }} />
             <Text className="text-xs text-red-700 flex-1 font-medium">
-              Microphone permission is required to complete this speaking challenge.
+              Microphone permission is required to record your speaking session.
             </Text>
           </View>
         )}
       </ScrollView>
 
-      {/* recording cta section */}
-      <View className="bg-white px-5 pt-3.5 pb-6 border-t border-slate-200 shadow-xl">
+      {/* recording controls */}
+      <View className="bg-white px-5 pt-4 pb-6 border-t border-slate-200 shadow-xl">
         {isRecording ? (
           <View className="w-full">
             <RecordingVisualizer durationSec={durationSec} />
             <Button
-              title="Stop Reading"
+              title="Finish Speaking"
               onPress={handleStopRecording}
               variant="danger"
               size="lg"
-              icon={<Ionicons name="stop" size={18} color="#FFFFFF" />}
-              className="mt-1"
+              icon="stop"
             />
           </View>
         ) : (
           <View className="w-full">
             <Button
-              title="Start Reading"
+              title={isPrepping ? `Start Speaking (${prepSecondsLeft}s)` : 'Start Speaking'}
               onPress={handleStartRecording}
               variant="primary"
               size="lg"
               loading={isPreparing}
-              icon={<Ionicons name="mic" size={22} color="#FFFFFF" />}
+              icon="mic"
             />
           </View>
         )}

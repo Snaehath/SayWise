@@ -3,7 +3,7 @@ import { Modal, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { WordAnalysis } from '../types/result';
 
-// props
+// types
 interface WordPhoneticModalProps {
   wordData: WordAnalysis | null;
   visible: boolean;
@@ -80,13 +80,14 @@ export const WordPhoneticModal: React.FC<WordPhoneticModalProps> = ({
             <Pressable
               onPress={onClose}
               hitSlop={12}
-              className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center"
+              unstable_pressDelay={0}
+              className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center active:opacity-75"
             >
               <Ionicons name="close" size={18} color="#64748B" />
             </Pressable>
           </View>
 
-          {/* ipa breakdown */}
+          {/* ipa */}
           <View className="mb-4">
             <Text className="text-3xl font-extrabold text-slate-900 mb-1">
               {wordData.word}
@@ -114,7 +115,9 @@ export const WordPhoneticModal: React.FC<WordPhoneticModalProps> = ({
           {/* dismiss */}
           <Pressable
             onPress={onClose}
-            className="w-full bg-slate-900 py-3.5 rounded-2xl items-center justify-center active:opacity-90"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            unstable_pressDelay={0}
+            className="w-full bg-slate-900 py-3.5 rounded-2xl items-center justify-center active:opacity-80"
           >
             <Text className="text-base font-bold text-white">Got It</Text>
           </Pressable>

@@ -1,54 +1,39 @@
 # 🎙️ SayWise - Daily Spoken English Practice
 
-> Build natural spoken English confidence in just **2 focused minutes a day** with instant AI-powered speech analysis and permanent mastery progression.
+> Build natural spoken English confidence in just **2 focused minutes a day** with personalized AI speech analysis, identity-driven progression, and conversational scenarios.
 
-SayWise is a high-speed, mobile-first daily speaking app built with **React Native (Expo SDK 54)** and powered by **Google Gemini 2.5 Flash**.
+SayWise is a high-speed, mobile-first speaking app built with **React Native (Expo SDK 54)** and powered by **Google Gemini 2.5 Flash**.
 
 ---
 
 ## ✨ Features & Architecture
 
-- **🚀 1-Tap Zero-Friction Launch:** Tapping *"Start Today's Challenge"* immediately opens today's reading challenge with zero decision fatigue.
-- **⏳ Authentic Daily Quest Ritual & Countdown:**
-  - One focused calibration quest per day to build sustainable habit formation without burnout.
-  - Completed state features a **live ticking countdown timer** (`⏳ Next Daily Challenge in 14h 22m 18s`) and instant access to review your take's analysis and audio.
-- **🏆 Permanent Mastery & XP Progression Engine (Zero Anxiety):**
-  - **No Punitive Streaks:** Say goodbye to broken-streak anxiety. Progress and levels **NEVER reset to zero** — every single 2-minute session permanently builds your speaking ability.
-  - **🚀 First-Time Kickstart Boost (Level 1 ➔ 2):** Completing your 1st challenge awards `+200 XP` (`100 Base + 100 Kickstart Boost`) for an **instant level up to Level 2**!
-  - **🎯 Precision Articulation Rewards:** Scoring 85%+ crisp pronunciation awards `+25 Bonus XP`.
-  - **🥋 Progressive Speaker Ranks (Levels 1–10):**
-    - *Voice Novice 🌱 ➔ Cadence Apprentice 🎯 ➔ Rhythm Adept 🌿 ➔ Speech Practitioner 💫 ➔ Fluent Speaker ⚡ ➔ Voice Grandmaster 👑*
-  - **⚡ Tier Unlock Milestones:**
-    - **Level 1–4:** Beginner Mode 🌱
-    - **Level 5 Unlock:** Intermediate Mode ⚡ (`1100 XP` permanent milestone)
-    - **Level 10 Unlock:** Advanced Mastery Mode 👑 (`3600 XP` permanent milestone)
-- **🧠 NanoQwen On-Device Curriculum Engine:**
-  - 30+ curated daily practice scenarios across all difficulty tiers.
-  - Contextual openers and diverse topics (everyday routines, mindfulness, teamwork, AI ethics, persuasive rhetoric).
-  - Dynamic phoneme articulatory targets (e.g. *Vowel elongation, Consonant clusters, Phrasing pauses*).
-- **⚙️ Settings & Level Management Screen:**
-  - Top header **Gear Button** (`settings-outline`) on the Home screen.
-  - Difficulty tier selector with clean lock badges (`🔒 Unlocks at Level 5`).
-  - **📅 30-Day Vocal Activity Matrix:** Clean GitHub-style contribution matrix neatly organized in Settings.
-  - Lifetime speaking metrics (total words spoken, practice minutes, total days completed).
-- **🔤 Interactive Word-Level IPA Breakdown:**
-  - **Color-Coded Word Chips:** Every word in your reading is color-coded by articulation accuracy:
-    - 🟢 **Crisp Articulation (85+ Score)**
-    - 🟡 **Review / Minor Slip**
-    - 🔴 **Needs Work / Distortion**
-  - **Tap-to-Inspect Phonetic Modal:** Tap any word to view its **International Phonetic Alphabet (IPA)** transcription (e.g. `[ /ˈkɑːɡ.nə.tɪv/ ]`) and targeted mouth/tongue positioning tips.
-- **🎧 Audio Replay & Shadowing Player:**
-  - Replay your recorded take directly on the Results screen.
-  - **`1.0x` (Normal)** and **`0.75x` (Slow-Mo)** playback speed toggle for deep syllable calibration.
-- **🌊 Dynamic Live Waveform Equalizer:**
-  - 11-bar smooth audio equalizer pulsing rhythmically during speech recording.
-- **🤖 Gemini 2.5 Flash Evaluation Engine:**
-  - **Overall Score (0–100)** with visual metric progress bars.
-  - **Pronunciation, Accuracy, Fluency, and Pacing** breakdowns.
-  - **Words Per Minute (WPM)** speed calculation.
-  - **Actionable Coaching Takeaways:** 1 top strength + 1 key focus area.
+- **🎙️ Clean 2-Minute Daily Habit Ritual:**
+  - Fast, zero-friction home dashboard focused entirely on **becoming a better speaker**.
+  - Daily challenge with a dedicated focus target (e.g. *"Speak naturally + slow down slightly"*).
+  - Live countdown timer for the next daily calibration and instant access to review previous takes.
+- **🌱 Speaker Identity & Personal Journey (No Gamey XP Anxiety):**
+  - **Speaker Profile:** Evaluates multidimensional skills across **Clarity, Fluency, Pacing, and Expression** with growth trajectories (e.g. `Fluency ↑ 12%`, `↑ 4% better this week`).
+  - **Identity Milestones:** Progress through speaking stages (*Voice Novice 🌱 ➔ Clear Speaker 🎯 ➔ Natural Speaker 🌿 ➔ Confident Speaker 💫 ➔ Expressive Speaker ⚡ ➔ Powerful Speaker 👑*).
+  - **Speaking Journey Timeline:** Visual story of your milestones (*Started ➔ 3 Sessions ➔ First Full Speech ➔ Improved Pacing ➔ 100 Words ➔ First 80+ Score ➔ Current Focus*).
+  - **Invisible Gamification:** Progression mechanics work under the hood without cluttering the UI with childish level numbers.
+- **🏆 Personal Bests Recognition:**
+  - Automatic detection and celebration of personal records (e.g. *"🏆 New Personal Best: Fluency 86"*).
+- **🎭 4 Dynamic Speaking Modalities:**
+  1. 📖 **Read:** Natural thought-grouped passages for pronunciation, rhythm, and cadence.
+  2. 💭 **Explain:** Spontaneous explanation prompts for fluency and narrative flow.
+  3. 🎯 **Describe:** Situational sensory descriptions for vocabulary retrieval and vocal variety.
+  4. ⚡ **Quick Opinion:** Provocative workplace and daily scenarios with a 10s prep timer for spontaneous speaking.
+- **🤖 Personalized AI Challenge Recipe Engine:**
+  - Gemini 2.5 Flash dynamically crafts tomorrow's challenge tailored to the learner's state (strengths, weaknesses, recent topics, pacing targets).
+  - High-quality offline fallback presets covering 30+ real-world conversational dilemmas.
+- **💡 Actionable Post-Session Coaching:**
+  - **Coach Headline:** Immediate assessment (e.g. *"You sounded more natural today"*).
+  - **One Thing to Improve:** Concrete, actionable guidance for tomorrow's practice.
+  - **Word-Level Articulation & IPA Inspection:** Tap any word to inspect phonetic IPA transcriptions and tongue/mouth positioning tips.
+  - **Dual-Speed Audio Replay:** Review takes at `1.0x` (Normal) and `0.75x` (Slow-Mo) for syllable calibration.
 - **🔒 Privacy First:** Ephemeral audio recordings are deleted immediately following evaluation.
-- **⚡ Zero-Lag Architecture:** Instant 0ms screen navigation with offline **MMKV** key-value persistence.
+- **⚡ Zero-Lag Architecture:** Instant screen transitions backed by offline **MMKV** key-value persistence.
 
 ---
 
@@ -56,12 +41,13 @@ SayWise is a high-speed, mobile-first daily speaking app built with **React Nati
 
 ```mermaid
 graph TD
-    A[🏠 Home Screen] -->|1-Tap Start| C[🎙️ Speaking Challenge & Live Waveform]
-    A -->|⚙️ Settings Icon| S[⚙️ Settings, Levels & 30-Day Map]
-    C -->|Read Aloud & Record| D[🤖 Gemini 2.5 Flash Audio Analysis]
-    D -->|Multimodal Speech Evaluation| E[📊 Results Dashboard & Audio Player]
+    A[🏠 Home: Today's Speak] -->|Start Speaking| C[🎙️ 4-Modality Challenge & Equalizer]
+    A -->|Journey Icon| J[🗺️ Speaking Journey & Profile]
+    A -->|Settings Icon| S[⚙️ Settings & 30-Day Map]
+    C -->|Record Take| D[🤖 Gemini 2.5 Flash Audio Analysis]
+    D -->|Multimodal Evaluation| E[📊 Session Insights & Audio Player]
     E -->|Tap Word| F[🔤 IPA Phonetic Breakdown Modal]
-    E -->|Complete Challenge| H[🎉 Victory, Permanent XP & Rank Update]
+    E -->|Save Session| H[✨ Session Logged & Profile Updated]
     H -->|Return Home| A
 ```
 
@@ -135,30 +121,33 @@ saywise/
 │   │   ├── Button.tsx         # Tactile button with animated scale feedback
 │   │   ├── DifficultyCard.tsx # Radio tier selection card
 │   │   ├── Header.tsx         # Top app navigation bar
-│   │   ├── LevelCard.tsx      # Permanent Level & XP progress card
+│   │   ├── JourneyTimeline.tsx # Vertical speaking story milestones timeline
+│   │   ├── LevelCard.tsx      # Permanent progression & XP card
 │   │   ├── MetricStatsRow.tsx # Growth metrics row (words, minutes, total days)
 │   │   ├── ProgressBar.tsx    # Animated metric progress bar
 │   │   ├── RecordingVisualizer.tsx # Live 11-bar audio recording equalizer
 │   │   ├── ScoreCard.tsx      # Dashboard ring score & 4-metric progress bars
+│   │   ├── SpeakerProfileCard.tsx # Multidimensional skills & identity card
 │   │   └── WordPhoneticModal.tsx # Tap-to-inspect IPA & articulation modal
 │   ├── data/                  # Offline curriculum & generation manifold
-│   │   └── challenges.ts      # NanoQwen synthesis engine & 30+ daily topics
+│   │   └── challenges.ts      # 4 Modality speech synthesis engine & scenario recipes
 │   ├── navigation/            # Navigation routing
-│   │   └── AppNavigator.tsx   # Lightweight, instant screen state switcher
+│   │   └── AppNavigator.tsx   # Lightweight screen switcher
 │   ├── screens/               # Core application screens
-│   │   ├── WelcomeScreen.tsx  # Home dashboard, level progress & 1-tap start
-│   │   ├── SettingsScreen.tsx # Level progression, locked tiers & 30-day map
-│   │   ├── ChallengeScreen.tsx# Read-aloud paragraph & live waveform recording
+│   │   ├── WelcomeScreen.tsx  # Minimalist home dashboard, 2-minute daily card
+│   │   ├── JourneyScreen.tsx  # Personal speaking story, records & skill radar
+│   │   ├── SettingsScreen.tsx # Tier switcher & 30-day consistency map
+│   │   ├── ChallengeScreen.tsx# Speaking screen with 10s prep timer & equalizer
 │   │   ├── AnalysisScreen.tsx # AI audio processing & pulsing visualizer
-│   │   ├── ResultScreen.tsx   # Word-level chips, audio playback & score card
+│   │   ├── ResultScreen.tsx   # Coach headline, trajectories, tomorrow's focus & replay
 │   │   ├── DifficultyScreen.tsx # Standalone tier switcher
-│   │   └── CompletionScreen.tsx# Victory celebration, XP awards & summary
+│   │   └── CompletionScreen.tsx# Session celebration & identity summary
 │   ├── services/              # API & Audio Business Logic
-│   │   ├── analysisService.ts # Gemini 2.5 Flash audio transcription, scoring & IPA
-│   │   ├── challengeService.ts# Daily speaking challenge retrieval
+│   │   ├── analysisService.ts # Gemini 2.5 Flash audio evaluation & feedback
+│   │   ├── challengeService.ts# Personalized AI recipe synthesis & daily rotation
 │   │   └── recordingService.ts# Expo Audio lifecycle & cache management
 │   ├── storage/               # Offline Persistence
-│   │   └── challengeStorage.ts# MMKV level engine, permanent XP & 30-day activity
+│   │   └── challengeStorage.ts# MMKV speaker profile, journey milestones & personal bests
 │   ├── theme/                 # Design tokens & color system
 │   └── types/                 # TypeScript interfaces and data models
 ├── App.tsx                    # Application entry root with SafeAreaProvider

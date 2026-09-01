@@ -1,16 +1,17 @@
 import React from 'react';
 import {
   ActivityIndicator,
-  Animated,
   Pressable,
   Text,
   TextStyle,
   View,
   ViewStyle,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
+// types
 type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'outline' | 'ghost';
-type ButtonSize = 'sm' | 'md' | 'lg';
+type ButtonSize = 'sm' | 'md' | 'lg' | 'small' | 'medium' | 'large';
 
 interface ButtonProps {
   title: string;
@@ -19,7 +20,7 @@ interface ButtonProps {
   size?: ButtonSize;
   disabled?: boolean;
   loading?: boolean;
-  icon?: React.ReactNode;
+  icon?: React.ReactNode | keyof typeof Ionicons.glyphMap;
   iconPosition?: 'left' | 'right';
   className?: string;
   style?: ViewStyle;
@@ -39,31 +40,9 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
 }) => {
-  const animatedScale = React.useRef(new Animated.Value(1)).current;
-  const isFlex1 = className.includes('flex-1');
-
-  const handlePressIn = () => {
-    Animated.spring(animatedScale, {
-      toValue: 0.97,
-      useNativeDriver: true,
-      speed: 30,
-      bounciness: 0,
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.spring(animatedScale, {
-      toValue: 1,
-      useNativeDriver: true,
-      speed: 30,
-      bounciness: 4,
-    }).start();
-  };
-
+  // helpers
   const getVariantClass = (): string => {
-    if (disabled) {
-      return 'bg-slate-200';
-    }
+    if (disabled) return 'bg-slate-200';
     switch (variant) {
       case 'primary':
         return 'bg-indigo-600 active:bg-indigo-700 shadow-md shadow-indigo-500/25';
@@ -72,28 +51,29 @@ export const Button: React.FC<ButtonProps> = ({
       case 'danger':
         return 'bg-red-500 active:bg-red-600 shadow-md shadow-red-500/25';
       case 'outline':
-        return 'bg-transparent border-[1.5px] border-indigo-600';
+        return 'bg-transparent border-[1.5px] border-indigo-600 active:bg-indigo-50';
       case 'ghost':
-        return 'bg-transparent';
+        return 'bg-transparent active:bg-slate-100';
     }
   };
 
   const getSizeClass = (): string => {
     switch (size) {
       case 'sm':
-        return 'py-2 px-3.5';
+      case 'small':
+        return 'py-2.5 px-4';
       case 'md':
-        return 'py-3 px-4';
-      case 'lg':
-      default:
+      case 'medium':
         return 'py-3.5 px-5';
+      case 'lg':
+      case 'large':
+      default:
+        return 'py-4 px-6';
     }
   };
 
   const getTextClass = (): string => {
-    if (disabled) {
-      return 'text-slate-400';
-    }
+    if (disabled) return 'text-slate-400';
     switch (variant) {
       case 'primary':
       case 'danger':
@@ -108,42 +88,52 @@ export const Button: React.FC<ButtonProps> = ({
   const getTextSizeClass = (): string => {
     switch (size) {
       case 'sm':
+      case 'small':
         return 'text-sm font-semibold';
       case 'md':
+      case 'medium':
         return 'text-sm font-bold';
       case 'lg':
+      case 'large':
       default:
-        return 'text-base font-bold';
+        return 'text-base font-extrabold';
     }
   };
 
+  const renderIcon = () => {
+    if (!icon) return null;
+    if (typeof icon === 'string') {
+      const iconColor = variant === 'primary' || variant === 'danger' ? '#FFFFFF' : '#4F46E5';
+      const iconSize = size === 'sm' || size === 'small' ? 16 : 20;
+      return <Ionicons name={icon as unknown as keyof typeof Ionicons.glyphMap} size={iconSize} color={iconColor} />;
+    }
+    return icon;
+  };
+
+  // render
   return (
-    <Animated.View
-      className={isFlex1 ? 'flex-1' : ''}
-      style={[{ transform: [{ scale: animatedScale }] }, style]}
+    <Pressable
+      onPress={onPress}
+      disabled={disabled || loading}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      unstable_pressDelay={0}
+      style={style}
+      className={`w-full flex-row items-center justify-center rounded-2xl active:opacity-85 ${getVariantClass()} ${getSizeClass()} ${className}`.trim()}
     >
-      <Pressable
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        disabled={disabled || loading}
-        className={`w-full flex-row items-center justify-center rounded-2xl ${getVariantClass()} ${getSizeClass()} ${className.replace('flex-1', '').trim()}`}
-      >
-        {loading ? (
-          <ActivityIndicator
-            size="small"
-            color={variant === 'primary' || variant === 'danger' ? '#FFFFFF' : '#4F46E5'}
-          />
-        ) : (
-          <View className="flex-row items-center justify-center">
-            {icon && iconPosition === 'left' && <View className="mr-2">{icon}</View>}
-            <Text className={`${getTextClass()} ${getTextSizeClass()}`} style={textStyle}>
-              {title}
-            </Text>
-            {icon && iconPosition === 'right' && <View className="ml-2">{icon}</View>}
-          </View>
-        )}
-      </Pressable>
-    </Animated.View>
+      {loading ? (
+        <ActivityIndicator
+          size="small"
+          color={variant === 'primary' || variant === 'danger' ? '#FFFFFF' : '#4F46E5'}
+        />
+      ) : (
+        <View className="flex-row items-center justify-center pointer-events-none">
+          {icon && iconPosition === 'left' && <View className="mr-2">{renderIcon()}</View>}
+          <Text className={`${getTextClass()} ${getTextSizeClass()}`} style={textStyle}>
+            {title}
+          </Text>
+          {icon && iconPosition === 'right' && <View className="ml-2">{renderIcon()}</View>}
+        </View>
+      )}
+    </Pressable>
   );
 };

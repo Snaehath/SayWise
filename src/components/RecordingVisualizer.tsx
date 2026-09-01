@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, Text, View } from 'react-native';
 
-// props
+// types
 interface RecordingVisualizerProps {
   durationSec: number;
 }
@@ -9,29 +9,17 @@ interface RecordingVisualizerProps {
 export const RecordingVisualizer: React.FC<RecordingVisualizerProps> = ({
   durationSec,
 }) => {
-  // animations
+  // refs
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const ringScaleAnim = useRef(new Animated.Value(1)).current;
   const ringOpacityAnim = useRef(new Animated.Value(0.6)).current;
 
-  // 11 waveform bars
-  const barHeights = useRef([
-    new Animated.Value(12),
-    new Animated.Value(20),
-    new Animated.Value(32),
-    new Animated.Value(44),
-    new Animated.Value(28),
-    new Animated.Value(48),
-    new Animated.Value(34),
-    new Animated.Value(42),
-    new Animated.Value(26),
-    new Animated.Value(18),
-    new Animated.Value(10),
-  ]).current;
+  const barScales = useRef(
+    Array.from({ length: 11 }, () => new Animated.Value(0.4))
+  ).current;
 
   // effects
   useEffect(() => {
-    // pulse loop
     const pulseLoop = Animated.loop(
       Animated.sequence([
         Animated.parallel([
@@ -72,17 +60,16 @@ export const RecordingVisualizer: React.FC<RecordingVisualizerProps> = ({
     );
     pulseLoop.start();
 
-    // waveform loop
     const interval = setInterval(() => {
-      barHeights.forEach((bar, index) => {
-        const weight = Math.sin(((index + 1) / (barHeights.length + 1)) * Math.PI);
-        const randomHeight = 8 + Math.random() * (40 * weight + 10);
+      barScales.forEach((bar, index) => {
+        const weight = Math.sin(((index + 1) / (barScales.length + 1)) * Math.PI);
+        const randomScale = 0.2 + Math.random() * (0.8 * weight + 0.2);
 
         Animated.timing(bar, {
-          toValue: Math.max(6, Math.min(48, randomHeight)),
+          toValue: Math.max(0.2, Math.min(1.2, randomScale)),
           duration: 140,
           easing: Easing.out(Easing.quad),
-          useNativeDriver: false,
+          useNativeDriver: true,
         }).start();
       });
     }, 150);
@@ -102,7 +89,7 @@ export const RecordingVisualizer: React.FC<RecordingVisualizerProps> = ({
 
   // render
   return (
-    <View className="items-center justify-center py-4">
+    <View className="items-center justify-center py-3 pointer-events-none">
       {/* status tag */}
       <View className="flex-row items-center bg-rose-50 px-3.5 py-1.5 rounded-full border border-rose-200 mb-2">
         <View className="w-4 h-4 items-center justify-center mr-2">
@@ -129,14 +116,14 @@ export const RecordingVisualizer: React.FC<RecordingVisualizerProps> = ({
       </Text>
 
       {/* equalizer bars */}
-      <View className="flex-row items-center justify-center h-14 gap-1.5 mt-1.5 px-4">
-        {barHeights.map((animHeight, index) => {
+      <View className="flex-row items-center justify-center h-12 gap-1.5 mt-1 px-4">
+        {barScales.map((animScale, index) => {
           const isCenter = index >= 3 && index <= 7;
           return (
             <Animated.View
               key={index}
-              className={`w-1.5 rounded-full ${isCenter ? 'bg-indigo-600' : 'bg-indigo-400'}`}
-              style={[{ height: animHeight }]}
+              className={`w-1.5 h-10 rounded-full ${isCenter ? 'bg-indigo-600' : 'bg-indigo-400'}`}
+              style={[{ transform: [{ scaleY: animScale }] }]}
             />
           );
         })}

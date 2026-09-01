@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+// types
 interface HeaderProps {
   title?: string;
   subtitle?: string;
@@ -15,13 +16,15 @@ export const Header: React.FC<HeaderProps> = ({
   onBack,
   rightElement,
 }) => {
+  // render
   return (
     <View className="h-[52px] flex-row items-center justify-between px-4">
       <View className="w-12 items-start justify-center">
         {onBack && (
           <Pressable
             onPress={onBack}
-            className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200 active:bg-slate-100 shadow-sm"
+            unstable_pressDelay={0}
+            className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200 active:opacity-75 shadow-sm"
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
             <Ionicons name="arrow-back" size={20} color="#0F172A" />

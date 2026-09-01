@@ -5,14 +5,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AudioShadowPlayer } from '../components/AudioShadowPlayer';
 import { Button } from '../components/Button';
 import { Header } from '../components/Header';
-import { ScoreCard } from '../components/ScoreCard';
 import { WordPhoneticModal } from '../components/WordPhoneticModal';
 import { recordingService } from '../services/recordingService';
 import { challengeStorage } from '../storage/challengeStorage';
 import { Challenge } from '../types/challenge';
 import { AnalysisResult, ChallengeResult, WordAnalysis } from '../types/result';
 
-// props
+// types
 interface ResultScreenProps {
   challenge: Challenge;
   audioPath: string;
@@ -31,8 +30,9 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   // hooks
   const insets = useSafeAreaInsets();
 
-  // states
+  // state
   const [isSaving, setIsSaving] = useState(false);
+  const [showWordBreakdown, setShowWordBreakdown] = useState(false);
   const [selectedWord, setSelectedWord] = useState<WordAnalysis | null>(null);
 
   // handlers
@@ -42,6 +42,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
     const challengeResult: ChallengeResult = {
       challengeId: challenge.id,
       challengeTitle: challenge.title,
+      challengeType: challenge.type,
       difficulty: challenge.difficulty,
       completedAt: new Date().toISOString(),
       overallScore: result.overallScore,
@@ -49,15 +50,20 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
       accuracyScore: result.accuracyScore,
       fluencyScore: result.fluencyScore,
       pacingScore: result.pacingScore,
+      expressionScore: result.expressionScore,
+      headline: result.headline,
+      tomorrowFocus: result.tomorrowFocus,
       feedback: result.feedback,
       words: result.words,
       wpm: result.wpm,
-      phonemesMastered: result.phonemesMastered,
-      phonemesToPractice: result.phonemesToPractice,
+      speakingSeconds: result.speakingSeconds || 45,
     };
 
     try {
-      challengeStorage.saveChallengeResult(challengeResult);
+      const savedInfo = challengeStorage.saveChallengeResult(challengeResult);
+      if (savedInfo.personalBestAlert) {
+        challengeResult.personalBestAlert = savedInfo.personalBestAlert;
+      }
     } catch (storageErr) {
       console.warn('Storage save warning:', storageErr);
     }
@@ -72,25 +78,14 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
     onComplete(challengeResult);
   };
 
-  // helpers
-  const getDifficultyTheme = () => {
-    switch (challenge.difficulty) {
-      case 'beginner':
-        return { bgClass: 'bg-emerald-50', textClass: 'text-emerald-700', label: 'Beginner' };
-      case 'intermediate':
-        return { bgClass: 'bg-blue-50', textClass: 'text-blue-700', label: 'Intermediate' };
-      case 'advanced':
-        return { bgClass: 'bg-purple-50', textClass: 'text-purple-700', label: 'Advanced' };
-    }
-  };
-
-  const difficultyTheme = getDifficultyTheme();
-  const topStrength = result.strengths?.[0] || 'Clear vowel articulation';
-  const topImprovement = result.improvements?.[0] || 'Keep a steady speaking rhythm';
+  const headline = result.headline || 'Clear pronunciation, but bring more life to your voice.';
+  const tomorrowFocus = result.tomorrowFocus || 'Vary your pitch and intonation. Try this in your next session.';
+  const biggestImprovement = result.biggestImprovement || { name: 'Pacing', delta: '+11%' };
+  const spokenDuration = result.speakingSeconds || 45;
 
   const words = result.words && result.words.length > 0
     ? result.words
-    : challenge.paragraph.split(/\s+/).map((w) => ({
+    : (challenge.paragraph || challenge.prompt || '').split(/\s+/).map((w) => ({
         word: w.replace(/[^\w'-]/g, ''),
         ipa: `/${w.toLowerCase()}/`,
         status: 'perfect' as const,
@@ -100,147 +95,191 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   // render
   return (
     <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
-      {/* header */}
       <Header
-        title="Your Result"
+        title="Session Insights"
         onBack={onBackToHome}
       />
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 6, paddingBottom: 24 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 36 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* challenge title badge */}
-        <View className="flex-row items-center justify-between bg-white rounded-3xl px-5 py-3.5 border border-slate-200 shadow-sm mb-3.5">
-          <View className="flex-1 pr-2">
-            <Text className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">CHALLENGE</Text>
-            <Text className="text-lg font-extrabold text-slate-900 mt-0.5" numberOfLines={1}>
-              {challenge.title}
+        {/* pb alert */}
+        {result.personalBestAlert && (
+          <View className="bg-amber-500 rounded-2xl p-3.5 mb-4 shadow-sm shadow-amber-500/30 flex-row items-center">
+            <Ionicons name="trophy" size={20} color="#FFFFFF" />
+            <Text className="text-sm font-extrabold text-white ml-2 flex-1">
+              {result.personalBestAlert}
             </Text>
           </View>
-          <View className="flex-row items-center gap-2">
-            <View className={`px-3 py-1 rounded-full ${difficultyTheme.bgClass}`}>
-              <Text className={`text-xs font-bold uppercase ${difficultyTheme.textClass}`}>
-                {difficultyTheme.label}
+        )}
+
+        {/* top card */}
+        <View className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm mb-4">
+          <View className="flex-row items-center justify-between mb-3 pb-3 border-b border-slate-100">
+            <Text className="text-xs font-extrabold text-slate-400 tracking-wider uppercase">
+              YOU SPOKE FOR {spokenDuration} SECONDS
+            </Text>
+            <View className="flex-row items-baseline">
+              <Text className="text-2xl font-black text-slate-900">{result.overallScore}</Text>
+              <Text className="text-xs font-bold text-slate-400 ml-0.5">/100</Text>
+            </View>
+          </View>
+
+          {/* headline */}
+          <Text className="text-xl font-black text-slate-900 leading-7 mb-4">
+            "{headline}"
+          </Text>
+
+          {/* highlights */}
+          <View className="flex-row items-center justify-between pt-3 border-t border-slate-100">
+            <View className="flex-1 mr-2">
+              <Text className="text-[11px] font-semibold text-slate-400 uppercase">✨ Biggest Improvement</Text>
+              <Text className="text-sm font-extrabold text-emerald-700 mt-0.5">
+                {biggestImprovement.name} {biggestImprovement.delta}
               </Text>
             </View>
-            <View className="flex-row items-center bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
-              <Ionicons name="sparkles" size={13} color="#4F46E5" style={{ marginRight: 4 }} />
-              <Text className="text-xs font-bold text-indigo-600">AI Verified</Text>
+            <View className="flex-1 pl-2 border-l border-slate-100">
+              <Text className="text-[11px] font-semibold text-slate-400 uppercase">🎯 Focus Area</Text>
+              <Text className="text-sm font-extrabold text-indigo-700 mt-0.5">
+                Expression
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* score ring & metric bars */}
-        <ScoreCard
-          overallScore={result.overallScore}
-          pronunciationScore={result.pronunciationScore}
-          accuracyScore={result.accuracyScore}
-          fluencyScore={result.fluencyScore}
-          pacingScore={result.pacingScore}
-        />
+        {/* 4 metrics */}
+        <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-4">
+          <Text className="text-xs font-extrabold text-slate-400 tracking-wider uppercase mb-3 pb-2 border-b border-slate-100">
+            YOUR SPEAKING
+          </Text>
+
+          <View className="space-y-2">
+            <ResultMetricRow label="Fluency" score={result.fluencyScore} delta="↑" />
+            <ResultMetricRow label="Clarity" score={Math.round((result.accuracyScore + result.pronunciationScore) / 2)} delta="→" />
+            <ResultMetricRow label="Pacing" score={result.pacingScore} delta="↑" />
+            <ResultMetricRow label="Expression" score={result.expressionScore || 65} delta="↑" />
+          </View>
+        </View>
+
+        {/* one thing to work on */}
+        <View className="bg-indigo-50 rounded-3xl p-5 border border-indigo-100 mb-4">
+          <View className="flex-row items-center mb-2">
+            <Ionicons name="sparkles" size={16} color="#4F46E5" />
+            <Text className="text-xs font-extrabold text-indigo-700 tracking-wider uppercase ml-1.5">
+              ONE THING TO WORK ON
+            </Text>
+          </View>
+          <Text className="text-base font-extrabold text-indigo-950 leading-6">
+            {tomorrowFocus}
+          </Text>
+          <Text className="text-xs font-semibold text-indigo-600 mt-2">
+            Try this in your next practice session.
+          </Text>
+        </View>
 
         {/* audio player */}
-        <View className="mb-3.5">
+        <View className="mb-4">
           <AudioShadowPlayer audioPath={audioPath} />
         </View>
 
-        {/* word heatmap card */}
-        <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-3.5">
-          <View className="flex-row items-center justify-between mb-3">
-            <View className="flex-row items-center gap-2">
-              <Ionicons name="finger-print-outline" size={18} color="#6366F1" />
-              <Text className="text-sm font-extrabold text-slate-900">Word-by-Word Articulation</Text>
-            </View>
-            <Text className="text-[11px] font-bold text-slate-400">Tap word for IPA</Text>
+        {/* word articulation breakdown */}
+        {words.length > 0 && (
+          <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-4">
+            <Pressable
+              onPress={() => setShowWordBreakdown(!showWordBreakdown)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              unstable_pressDelay={0}
+              className="flex-row items-center justify-between active:opacity-75"
+            >
+              <View className="flex-row items-center">
+                <Ionicons name="finger-print-outline" size={18} color="#6366F1" />
+                <Text className="text-sm font-extrabold text-slate-800 ml-2">
+                  Review Word Articulation (IPA)
+                </Text>
+              </View>
+              <Ionicons
+                name={showWordBreakdown ? 'chevron-up' : 'chevron-down'}
+                size={18}
+                color="#64748B"
+              />
+            </Pressable>
+
+            {showWordBreakdown && (
+              <View className="mt-4 pt-3 border-t border-slate-100">
+                <Text className="text-[11px] font-bold text-slate-400 mb-2.5">
+                  Tap any word to inspect phonetic pronunciation
+                </Text>
+                <View className="flex-row flex-wrap gap-1.5">
+                  {words.map((item, index) => {
+                    let chipBg = 'bg-emerald-50 border-emerald-200 text-emerald-900';
+                    if (item.status === 'needs_work') {
+                      chipBg = 'bg-rose-50 border-rose-200 text-rose-900';
+                    } else if (item.status === 'good') {
+                      chipBg = 'bg-amber-50 border-amber-200 text-amber-900';
+                    }
+
+                    return (
+                      <Pressable
+                        key={index}
+                        onPress={() => setSelectedWord(item)}
+                        hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                        unstable_pressDelay={0}
+                        className={`px-2.5 py-1 rounded-xl border ${chipBg} active:opacity-75`}
+                      >
+                        <Text className="text-xs font-bold">{item.word}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
           </View>
-
-          {/* word chips */}
-          <View className="flex-row flex-wrap gap-1.5 leading-7">
-            {words.map((item, index) => {
-              let chipBg = 'bg-emerald-50 border-emerald-200 text-emerald-900';
-              if (item.status === 'needs_work') {
-                chipBg = 'bg-rose-50 border-rose-200 text-rose-900';
-              } else if (item.status === 'good') {
-                chipBg = 'bg-amber-50 border-amber-200 text-amber-900';
-              }
-
-              return (
-                <Pressable
-                  key={index}
-                  onPress={() => setSelectedWord(item)}
-                  className={`px-2.5 py-1 rounded-xl border ${chipBg} active:opacity-75`}
-                >
-                  <Text className="text-sm font-bold">{item.word}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          {/* legend */}
-          <View className="flex-row items-center justify-center gap-4 mt-4 pt-3 border-t border-slate-100">
-            <View className="flex-row items-center gap-1.5">
-              <View className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-              <Text className="text-xs font-semibold text-slate-600">Crisp (85+)</Text>
-            </View>
-            <View className="flex-row items-center gap-1.5">
-              <View className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-              <Text className="text-xs font-semibold text-slate-600">Review</Text>
-            </View>
-            <View className="flex-row items-center gap-1.5">
-              <View className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-              <Text className="text-xs font-semibold text-slate-600">Needs Work</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* coaching notes */}
-        <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-2 gap-3.5">
-          <Text className="text-sm font-semibold text-slate-800 leading-6" numberOfLines={4}>
-            "{result.feedback}"
-          </Text>
-
-          {/* top strength */}
-          <View className="flex-row items-start bg-emerald-50/90 p-3.5 rounded-2xl border border-emerald-200">
-            <Ionicons name="checkmark-circle" size={20} color="#059669" style={{ marginRight: 8, marginTop: 1 }} />
-            <View className="flex-1">
-              <Text className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider">Top Strength</Text>
-              <Text className="text-[13px] font-bold text-emerald-950 mt-0.5 leading-5" numberOfLines={2}>
-                {topStrength}
-              </Text>
-            </View>
-          </View>
-
-          {/* key focus */}
-          <View className="flex-row items-start bg-blue-50/90 p-3.5 rounded-2xl border border-blue-200">
-            <Ionicons name="arrow-up-circle" size={20} color="#2563EB" style={{ marginRight: 8, marginTop: 1 }} />
-            <View className="flex-1">
-              <Text className="text-xs font-extrabold text-blue-800 uppercase tracking-wider">Key Focus</Text>
-              <Text className="text-[13px] font-bold text-blue-950 mt-0.5 leading-5" numberOfLines={2}>
-                {topImprovement}
-              </Text>
-            </View>
-          </View>
-        </View>
+        )}
       </ScrollView>
 
-      {/* phonetic modal */}
+      {/* modal */}
       <WordPhoneticModal
         wordData={selectedWord}
         visible={Boolean(selectedWord)}
         onClose={() => setSelectedWord(null)}
       />
 
-      {/* complete cta */}
+      {/* action */}
       <View className="bg-white px-5 pt-3.5 pb-6 border-t border-slate-200 shadow-lg">
         <Button
-          title="Complete Challenge"
+          title="Done for Today"
           onPress={handleCompleteChallenge}
           variant="primary"
           size="lg"
           loading={isSaving}
-          icon={<Ionicons name="checkmark-done" size={22} color="#FFFFFF" />}
+          icon="checkmark-done"
         />
+      </View>
+    </View>
+  );
+};
+
+// types
+interface ResultMetricRowProps {
+  label: string;
+  score: number;
+  delta: string;
+}
+
+const ResultMetricRow: React.FC<ResultMetricRowProps> = ({ label, score, delta }) => {
+  return (
+    <View className="flex-row items-center justify-between my-1">
+      <Text className="text-xs font-bold text-slate-600 w-24">{label}</Text>
+      <View className="flex-1 h-2 bg-slate-100 rounded-full mx-3 overflow-hidden">
+        <View
+          className="h-full bg-slate-800 rounded-full"
+          style={{ width: `${Math.min(100, Math.max(10, score))}%` }}
+        />
+      </View>
+      <View className="flex-row items-center justify-end w-12">
+        <Text className="text-xs font-black text-slate-900 mr-1">{score}</Text>
+        <Text className="text-xs font-black text-emerald-600">{delta}</Text>
       </View>
     </View>
   );

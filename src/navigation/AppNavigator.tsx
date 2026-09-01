@@ -4,31 +4,30 @@ import { StatusBar } from 'expo-status-bar';
 import { AnalysisScreen } from '../screens/AnalysisScreen';
 import { ChallengeScreen } from '../screens/ChallengeScreen';
 import { CompletionScreen } from '../screens/CompletionScreen';
-import { DifficultyScreen } from '../screens/DifficultyScreen';
+import { JourneyScreen } from '../screens/JourneyScreen';
 import { ResultScreen } from '../screens/ResultScreen';
-import { SettingsScreen } from '../screens/SettingsScreen';
 import { WelcomeScreen } from '../screens/WelcomeScreen';
 import { challengeService } from '../services/challengeService';
 import { challengeStorage } from '../storage/challengeStorage';
 import { Challenge, Difficulty } from '../types/challenge';
 import { AnalysisResult, ChallengeResult } from '../types/result';
 
+// types
 type ScreenState =
   | { name: 'Welcome' }
-  | { name: 'Settings' }
-  | { name: 'Difficulty' }
+  | { name: 'Journey' }
   | { name: 'Challenge'; difficulty: Difficulty; challenge: Challenge }
   | { name: 'Analysis'; challenge: Challenge; audioPath: string; durationSec: number }
   | { name: 'Result'; challenge: Challenge; audioPath: string; result: AnalysisResult }
   | { name: 'Completion'; result: ChallengeResult };
 
 export const AppNavigator: React.FC = () => {
+  // state
   const [currentScreen, setCurrentScreen] = useState<ScreenState>({ name: 'Welcome' });
 
-  // Instant navigation actions
+  // handlers
   const goToWelcome = () => setCurrentScreen({ name: 'Welcome' });
-  const goToSettings = () => setCurrentScreen({ name: 'Settings' });
-  const goToDifficulty = () => setCurrentScreen({ name: 'Difficulty' });
+  const goToJourney = () => setCurrentScreen({ name: 'Journey' });
   const goToChallenge = (difficulty: Difficulty, challenge: Challenge) =>
     setCurrentScreen({ name: 'Challenge', difficulty, challenge });
   const goToAnalysis = (challenge: Challenge, audioPath: string, durationSec: number) =>
@@ -38,34 +37,43 @@ export const AppNavigator: React.FC = () => {
   const goToCompletion = (result: ChallengeResult) =>
     setCurrentScreen({ name: 'Completion', result });
 
-  // 1-Tap direct launch using user's active unlocked level
-  const handleDirectStartChallenge = () => {
+  const handleDirectStartChallenge = (existingChallenge?: Challenge) => {
     const activeDiff = challengeStorage.getSelectedDifficulty();
-    const challenge = challengeService.getTodayChallenge(activeDiff);
+    const challenge = existingChallenge || challengeService.getTodayChallenge(activeDiff);
     goToChallenge(activeDiff, challenge);
   };
 
+  // render
   const renderScreen = () => {
     switch (currentScreen.name) {
       case 'Welcome':
         return (
           <WelcomeScreen
             onStartChallenge={handleDirectStartChallenge}
-            onOpenSettings={goToSettings}
-            onViewCompletedResult={(res) => goToCompletion(res)}
+            onOpenProfile={goToJourney}
+            onViewCompletedResult={(res) =>
+              goToResult(challengeService.getTodayChallenge(), '', {
+                overallScore: res.overallScore,
+                pronunciationScore: res.pronunciationScore,
+                accuracyScore: res.accuracyScore,
+                fluencyScore: res.fluencyScore,
+                pacingScore: res.pacingScore,
+                expressionScore: res.expressionScore,
+                headline: res.headline,
+                tomorrowFocus: res.tomorrowFocus,
+                feedback: res.feedback,
+                words: res.words,
+                wpm: res.wpm,
+                speakingSeconds: res.speakingSeconds,
+                strengths: ['Consistent speech', 'Good pacing'],
+                improvements: ['Keep regular daily practice'],
+              })
+            }
           />
         );
 
-      case 'Settings':
-        return <SettingsScreen onBack={goToWelcome} />;
-
-      case 'Difficulty':
-        return (
-          <DifficultyScreen
-            onBack={goToWelcome}
-            onSelectDifficulty={goToChallenge}
-          />
-        );
+      case 'Journey':
+        return <JourneyScreen onBack={goToWelcome} />;
 
       case 'Challenge':
         return (
@@ -116,7 +124,7 @@ export const AppNavigator: React.FC = () => {
         return (
           <WelcomeScreen
             onStartChallenge={handleDirectStartChallenge}
-            onOpenSettings={goToSettings}
+            onOpenProfile={goToJourney}
           />
         );
     }

@@ -7,13 +7,18 @@ export type ScreenName =
   | 'Challenge'
   | 'Analysis'
   | 'Result'
-  | 'Completion';
+  | 'Completion'
+  | 'Journey'
+  | 'Settings';
 
 export type NavigationParams = {
   Welcome: undefined;
   Difficulty: undefined;
-  Challenge: { difficulty: Difficulty; challenge?: Challenge };
+  Challenge: { difficulty?: Difficulty; challenge?: Challenge };
   Analysis: { challenge: Challenge; audioPath: string; durationSec: number };
   Result: { challenge: Challenge; audioPath: string; result: AnalysisResult };
   Completion: { result: ChallengeResult };
+  Journey: undefined;
+  Settings: undefined;
 };
+
