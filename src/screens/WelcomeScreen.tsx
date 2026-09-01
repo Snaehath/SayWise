@@ -26,7 +26,6 @@ const MidnightCountdown: React.FC = React.memo(() => {
     return {
       hours: Math.floor((diffMs / (1000 * 60 * 60)) % 24),
       minutes: Math.floor((diffMs / (1000 * 60)) % 60),
-      seconds: Math.floor((diffMs / 1000) % 60),
     };
   });
 
@@ -41,18 +40,17 @@ const MidnightCountdown: React.FC = React.memo(() => {
       setTimeLeft({
         hours: Math.floor((diffMs / (1000 * 60 * 60)) % 24),
         minutes: Math.floor((diffMs / (1000 * 60)) % 60),
-        seconds: Math.floor((diffMs / 1000) % 60),
       });
     };
 
-    const timer = setInterval(updateCountdown, 1000);
+    const timer = setInterval(updateCountdown, 60000);
     return () => clearInterval(timer);
   }, []);
 
   // render
   return (
-    <Text className="text-[11px] font-medium text-slate-400">
-      Next challenge in {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
+    <Text className="text-xs font-medium text-slate-400">
+      Next challenge in {timeLeft.hours}h {timeLeft.minutes}m
     </Text>
   );
 });
@@ -102,19 +100,23 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     loadState();
   }, []);
 
+  const improvementText = profile.totalSessions > 0
+    ? `Biggest improvement: ${profile.biggestImprovement.name} ↗`
+    : 'Complete session to calibrate ↗';
+
   // render
   return (
     <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: 20,
-          paddingTop: 14,
-          paddingBottom: 36,
+          paddingTop: 12,
+          paddingBottom: 28,
         }}
         showsVerticalScrollIndicator={false}
       >
-        {/* header */}
-        <View className="flex-row items-center justify-between mb-5">
+        {/* top header */}
+        <View className="flex-row items-center justify-between mb-4">
           <View>
             <Text className="text-xs font-semibold text-slate-500">{getGreeting()}</Text>
             <Text className="text-2xl font-black text-slate-900 mt-0.5">SayWise</Text>
@@ -124,37 +126,37 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             onPress={onOpenProfile}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             unstable_pressDelay={0}
-            className="px-3.5 py-2 rounded-2xl bg-white border border-slate-200 flex-row items-center shadow-sm shadow-slate-100 active:opacity-75"
+            className="px-3 py-1.5 rounded-2xl bg-white border border-slate-200 flex-row items-center shadow-sm shadow-slate-100 active:opacity-75"
           >
             <Ionicons name="person-circle-outline" size={18} color="#4F46E5" />
             <Text className="text-xs font-bold text-slate-700 ml-1.5">Profile</Text>
           </Pressable>
         </View>
 
-        {/* practice card */}
-        <View className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm mb-5">
-          <View className="flex-row items-center justify-between mb-4">
+        {/* 1. TODAY'S PRACTICE CARD */}
+        <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-4">
+          <View className="flex-row items-center justify-between mb-3.5">
             <Text className="text-xs font-extrabold tracking-widest text-slate-400 uppercase">
               TODAY'S PRACTICE • 2 MIN
             </Text>
-            <Text className="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
-              {activeMode === 'read' ? '1 min Reading' : '1 min Speaking'}
+            <Text className="text-[11px] font-bold text-slate-400 uppercase">
+              1 MIN
             </Text>
           </View>
 
-          {/* mode tabs */}
-          <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-5">
+          {/* mode switch */}
+          <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-4">
             <Pressable
               onPress={() => setActiveMode('read')}
               hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               unstable_pressDelay={0}
-              className={`flex-1 py-2.5 rounded-xl flex-row items-center justify-center active:opacity-80 ${
+              className={`flex-1 py-2 rounded-xl flex-row items-center justify-center active:opacity-80 ${
                 activeMode === 'read' ? 'bg-white shadow-sm' : ''
               }`}
             >
               <Ionicons
                 name="book-outline"
-                size={16}
+                size={15}
                 color={activeMode === 'read' ? '#4F46E5' : '#64748B'}
               />
               <Text
@@ -170,13 +172,13 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               onPress={() => setActiveMode('talk')}
               hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               unstable_pressDelay={0}
-              className={`flex-1 py-2.5 rounded-xl flex-row items-center justify-center active:opacity-80 ${
+              className={`flex-1 py-2 rounded-xl flex-row items-center justify-center active:opacity-80 ${
                 activeMode === 'talk' ? 'bg-white shadow-sm' : ''
               }`}
             >
               <Ionicons
                 name="mic-outline"
-                size={16}
+                size={15}
                 color={activeMode === 'talk' ? '#D97706' : '#64748B'}
               />
               <Text
@@ -189,56 +191,59 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             </Pressable>
           </View>
 
-          {/* topic */}
-          <View className="mb-4">
-            <Text className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">
+          {/* topic title */}
+          <View className="mb-3">
+            <Text className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
               {activeMode === 'read' ? 'READ' : 'TALK'}
             </Text>
-            <Text className="text-xl font-black text-slate-900 leading-7">
+            <Text className="text-lg font-black text-slate-900 leading-6">
               "{activeChallenge.title}"
             </Text>
           </View>
 
-          {/* rationale */}
-          <View className="bg-slate-50 rounded-2xl p-4 mb-5 border border-slate-100">
-            <View className="flex-row items-center mb-1.5">
-              <Ionicons name="sparkles" size={14} color="#4F46E5" />
-              <Text className="text-xs font-extrabold text-indigo-700 ml-1.5 uppercase tracking-wide">
-                Chosen for you
+          {/* chosen for you */}
+          <View className="bg-slate-50 rounded-2xl p-3 mb-4 border border-slate-100">
+            <View className="flex-row items-center mb-1">
+              <Ionicons name="sparkles" size={13} color="#4F46E5" />
+              <Text className="text-[11px] font-extrabold text-indigo-700 ml-1.5 uppercase tracking-wide">
+                CHOSEN FOR YOU
               </Text>
             </View>
-            <Text className="text-xs text-slate-600 leading-5">
+            <Text className="text-xs text-slate-600 leading-4.5">
               {activeChallenge.whyChosen || activeChallenge.focusTarget || 'Calibrated to build steady speaking cadence and clear articulation.'}
             </Text>
           </View>
 
-          {/* action */}
+          {/* action / completion state */}
           {isCompletedToday ? (
-            <View className="space-y-3">
-              <View className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex-row items-center justify-between">
+            <View>
+              <View className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 flex-row items-center justify-between mb-2.5">
                 <View className="flex-row items-center">
-                  <Ionicons name="checkmark-circle" size={20} color="#059669" />
+                  <Ionicons name="checkmark-circle" size={18} color="#059669" />
                   <Text className="text-xs font-bold text-emerald-800 ml-2">Today's Session Completed</Text>
                 </View>
-                <Text className="text-xs font-bold text-emerald-700">
+                <Text className="text-xs font-black text-emerald-700">
                   {todayResult?.overallScore ? `${todayResult.overallScore}/100` : 'Done'}
                 </Text>
               </View>
 
               {todayResult && onViewCompletedResult && (
-                <Button
-                  title="Review Today's Take"
-                  onPress={() => onViewCompletedResult(todayResult)}
-                  variant="outline"
-                  icon="sparkles"
-                  size="md"
-                />
+                <View className="mb-2.5">
+                  <Button
+                    title="Review Today's Take"
+                    onPress={() => onViewCompletedResult(todayResult)}
+                    variant="outline"
+                    icon="sparkles"
+                    size="md"
+                  />
+                </View>
               )}
 
-              <View className="items-center mt-2">
+              <View className="items-center pt-0.5">
                 <MidnightCountdown />
               </View>
             </View>
+
           ) : (
             <Button
               title={activeMode === 'read' ? 'Start Reading (1 min)' : 'Start Talking (1 min)'}
@@ -250,20 +255,20 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           )}
         </View>
 
-        {/* progress snapshot */}
+        {/* 2. YOUR SPEAKING CARD */}
         <Pressable
           onPress={onOpenProfile}
           className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm active:opacity-90"
         >
-          <View className="flex-row items-center justify-between mb-4 pb-3 border-b border-slate-100">
+          <View className="flex-row items-center justify-between mb-3.5 pb-2.5 border-b border-slate-100">
             <Text className="text-xs font-extrabold text-slate-400 tracking-wider uppercase">YOUR SPEAKING</Text>
             <View className="flex-row items-baseline">
-              <Text className="text-xl font-black text-slate-900">{profile.overallScore}</Text>
+              <Text className="text-lg font-black text-slate-900">{profile.overallScore}</Text>
               <Text className="text-xs font-bold text-slate-400 ml-0.5">/100</Text>
             </View>
           </View>
 
-          {/* metrics */}
+          {/* 4 skill meters */}
           <View className="space-y-2 mb-3">
             <ProgressMetricRow label="Fluency" score={profile.fluencyScore} />
             <ProgressMetricRow label="Clarity" score={profile.clarityScore} />
@@ -271,9 +276,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             <ProgressMetricRow label="Expression" score={profile.expressionScore} />
           </View>
 
-          {/* footnote */}
-          <View className="pt-3 border-t border-slate-100 flex-row items-center justify-between">
-            <Text className="text-xs font-bold text-emerald-700">{profile.growthSummary}</Text>
+          {/* footer */}
+          <View className="pt-2.5 border-t border-slate-100 flex-row items-center justify-between">
+            <Text className="text-xs font-bold text-emerald-700">{improvementText}</Text>
             <View className="flex-row items-center">
               <Text className="text-xs font-bold text-indigo-600 mr-1">View Profile</Text>
               <Ionicons name="chevron-forward" size={12} color="#4F46E5" />
