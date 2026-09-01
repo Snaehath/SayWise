@@ -122,23 +122,24 @@ export const challengeStorage = {
 
     if (totalSessions === 0) {
       return {
-        overallScore: 75,
-        clarityScore: 78,
-        fluencyScore: 72,
-        pacingScore: 70,
-        expressionScore: 74,
-        growthSummary: '↗ Ready for your first session',
-        biggestImprovement: { name: 'Fluency', delta: '+8%' },
+        overallScore: 50,
+        clarityScore: 50,
+        fluencyScore: 50,
+        pacingScore: 50,
+        expressionScore: 50,
+        growthSummary: '↗ Complete session to calibrate',
+        biggestImprovement: { name: 'Pacing', delta: 'Initial' },
         totalSessions: 0,
         sessionsThisWeek: 0,
         weekDots: [false, false, false, false, false, false, false],
         currentFocus: {
-          title: 'Natural Pacing',
-          targetText: 'Natural pacing 70 → 80',
+          title: 'Initial Calibration',
+          targetText: 'First session baseline calibration',
         },
         personalBests,
       };
     }
+
 
     const recent = history.slice(0, 5);
     const avgOverall = Math.round(recent.reduce((acc, h) => acc + h.overallScore, 0) / recent.length);

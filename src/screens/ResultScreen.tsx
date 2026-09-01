@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AudioShadowPlayer } from '../components/AudioShadowPlayer';
 import { Button } from '../components/Button';
 import { Header } from '../components/Header';
-import { WordPhoneticModal } from '../components/WordPhoneticModal';
 import { recordingService } from '../services/recordingService';
 import { challengeStorage } from '../storage/challengeStorage';
 import { Challenge } from '../types/challenge';
-import { AnalysisResult, ChallengeResult, WordAnalysis } from '../types/result';
+import { AnalysisResult, ChallengeResult } from '../types/result';
 
 // types
 interface ResultScreenProps {
@@ -32,8 +31,6 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
 
   // state
   const [isSaving, setIsSaving] = useState(false);
-  const [showWordBreakdown, setShowWordBreakdown] = useState(false);
-  const [selectedWord, setSelectedWord] = useState<WordAnalysis | null>(null);
 
   // handlers
   const handleCompleteChallenge = async () => {
@@ -54,7 +51,6 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
       headline: result.headline,
       tomorrowFocus: result.tomorrowFocus,
       feedback: result.feedback,
-      words: result.words,
       wpm: result.wpm,
       speakingSeconds: result.speakingSeconds || 45,
     };
@@ -82,15 +78,6 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   const tomorrowFocus = result.tomorrowFocus || 'Vary your pitch and intonation. Try this in your next session.';
   const biggestImprovement = result.biggestImprovement || { name: 'Pacing', delta: '+11%' };
   const spokenDuration = result.speakingSeconds || 45;
-
-  const words = result.words && result.words.length > 0
-    ? result.words
-    : (challenge.paragraph || challenge.prompt || '').split(/\s+/).map((w) => ({
-        word: w.replace(/[^\w'-]/g, ''),
-        ipa: `/${w.toLowerCase()}/`,
-        status: 'perfect' as const,
-        tip: 'Clear pronunciation',
-      }));
 
   // render
   return (
@@ -182,68 +169,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
         <View className="mb-4">
           <AudioShadowPlayer audioPath={audioPath} />
         </View>
-
-        {/* word articulation breakdown */}
-        {words.length > 0 && (
-          <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-4">
-            <Pressable
-              onPress={() => setShowWordBreakdown(!showWordBreakdown)}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              unstable_pressDelay={0}
-              className="flex-row items-center justify-between active:opacity-75"
-            >
-              <View className="flex-row items-center">
-                <Ionicons name="finger-print-outline" size={18} color="#6366F1" />
-                <Text className="text-sm font-extrabold text-slate-800 ml-2">
-                  Review Word Articulation (IPA)
-                </Text>
-              </View>
-              <Ionicons
-                name={showWordBreakdown ? 'chevron-up' : 'chevron-down'}
-                size={18}
-                color="#64748B"
-              />
-            </Pressable>
-
-            {showWordBreakdown && (
-              <View className="mt-4 pt-3 border-t border-slate-100">
-                <Text className="text-[11px] font-bold text-slate-400 mb-2.5">
-                  Tap any word to inspect phonetic pronunciation
-                </Text>
-                <View className="flex-row flex-wrap gap-1.5">
-                  {words.map((item, index) => {
-                    let chipBg = 'bg-emerald-50 border-emerald-200 text-emerald-900';
-                    if (item.status === 'needs_work') {
-                      chipBg = 'bg-rose-50 border-rose-200 text-rose-900';
-                    } else if (item.status === 'good') {
-                      chipBg = 'bg-amber-50 border-amber-200 text-amber-900';
-                    }
-
-                    return (
-                      <Pressable
-                        key={index}
-                        onPress={() => setSelectedWord(item)}
-                        hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-                        unstable_pressDelay={0}
-                        className={`px-2.5 py-1 rounded-xl border ${chipBg} active:opacity-75`}
-                      >
-                        <Text className="text-xs font-bold">{item.word}</Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-            )}
-          </View>
-        )}
       </ScrollView>
-
-      {/* modal */}
-      <WordPhoneticModal
-        wordData={selectedWord}
-        visible={Boolean(selectedWord)}
-        onClose={() => setSelectedWord(null)}
-      />
 
       {/* action */}
       <View className="bg-white px-5 pt-3.5 pb-6 border-t border-slate-200 shadow-lg">

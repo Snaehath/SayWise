@@ -1,6 +1,6 @@
 import { File } from 'expo-file-system';
 import { Challenge } from '../types/challenge';
-import { AnalysisResult, WordAnalysis } from '../types/result';
+import { AnalysisResult } from '../types/result';
 
 // config
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
@@ -33,31 +33,6 @@ async function readAudioFileAsBase64(audioPath: string): Promise<string | null> 
   }
 
   return null;
-}
-
-function generateFallbackWords(paragraph: string, overallScore: number): WordAnalysis[] {
-  const rawWords = paragraph.split(/\s+/).map((w) => w.replace(/[^\w'-]/g, '')).filter(Boolean);
-
-  return rawWords.map((word, idx) => {
-    let status: 'perfect' | 'good' | 'needs_work' = 'perfect';
-    if (overallScore < 80) {
-      if (idx % 4 === 0) status = 'good';
-      if (idx % 7 === 0) status = 'needs_work';
-    } else if (overallScore < 90) {
-      if (idx % 5 === 0) status = 'good';
-    }
-
-    return {
-      word,
-      ipa: `/${word.toLowerCase()}/`,
-      status,
-      tip: status === 'needs_work'
-        ? `Focus on pronouncing the vowel in "${word}" clearly with relaxed breath.`
-        : status === 'good'
-        ? `Slightly sharpen articulation at the start of "${word}".`
-        : `Crisp and accurate articulation!`,
-    };
-  });
 }
 
 function generateLocalFallbackAnalysis(
@@ -103,8 +78,6 @@ function generateLocalFallbackAnalysis(
     tomorrowFocus = 'Relax your jaw at commas for even more natural thought-grouping.';
   }
 
-  const words = generateFallbackWords(challenge.paragraph || challenge.prompt || 'Great practice session', overallScore);
-
   return {
     overallScore,
     pronunciationScore,
@@ -117,11 +90,8 @@ function generateLocalFallbackAnalysis(
     feedback: `${headline} ${tomorrowFocus}`,
     strengths: ['Confident voice projection', 'Clear syllable clarity on core vocabulary'],
     improvements: ['Slightly deliberate pausing between thought groups'],
-    words,
     wpm,
     speakingSeconds: durationSec,
-    phonemesMastered: ['/s/', '/t/', '/m/'],
-    phonemesToPractice: ['/θ/', '/r/'],
   };
 }
 
@@ -135,7 +105,6 @@ export const analysisService = {
       const base64Audio = await readAudioFileAsBase64(audioPath);
 
       if (base64Audio) {
-        const isRead = challenge.type === 'read';
         const promptText = `You are a speech coach for SayWise. Analyze this real audio recording of a student completing their daily spoken English session.
 
 Challenge Context:
@@ -151,9 +120,7 @@ Evaluate speech across:
 3. Pacing: Words-per-minute tempo, appropriate pauses at thought groups.
 4. Expression: Conversational tone, vocal confidence, intonation.
 
-${isRead ? 'Perform a word-level IPA breakdown for the target reading.' : 'Perform evaluation of spoken clarity and vocabulary.'}
-
-Return a STRICT JSON response (no markdown backticks, pure JSON):
+Return a STRICT, compact JSON response (no markdown backticks, pure JSON):
 {
   "overallScore": number (0-100),
   "pronunciationScore": number (0-100),
@@ -166,15 +133,7 @@ Return a STRICT JSON response (no markdown backticks, pure JSON):
   "feedback": string,
   "strengths": [string, string],
   "improvements": [string, string],
-  "wpm": number,
-  "words": [
-    {
-      "word": string,
-      "status": "perfect" | "good" | "needs_work",
-      "ipa": string,
-      "tip": string
-    }
-  ]
+  "wpm": number
 }`;
 
         const payload = {
@@ -218,10 +177,6 @@ Return a STRICT JSON response (no markdown backticks, pure JSON):
               const wordCount = (challenge.paragraph || challenge.prompt || '').split(/\s+/).length;
               const calcWpm = parsed.wpm || Math.round((wordCount / Math.max(durationSec, 1)) * 60);
 
-              const wordsList = Array.isArray(parsed.words) && parsed.words.length > 0
-                ? parsed.words
-                : generateFallbackWords(challenge.paragraph || challenge.prompt || 'Good job', parsed.overallScore);
-
               return {
                 overallScore: Math.round(parsed.overallScore),
                 pronunciationScore: Math.round(parsed.pronunciationScore ?? parsed.overallScore),
@@ -236,9 +191,6 @@ Return a STRICT JSON response (no markdown backticks, pure JSON):
                 feedback: parsed.feedback || 'Great job on today\'s speaking session!',
                 strengths: Array.isArray(parsed.strengths) ? parsed.strengths : ['Good voice projection', 'Clear articulation'],
                 improvements: Array.isArray(parsed.improvements) ? parsed.improvements : ['Keep practicing natural rhythm and pacing'],
-                phonemesMastered: Array.isArray(parsed.phonemesMastered) ? parsed.phonemesMastered : ['/s/', '/t/'],
-                phonemesToPractice: Array.isArray(parsed.phonemesToPractice) ? parsed.phonemesToPractice : ['/r/', '/θ/'],
-                words: wordsList,
               };
             }
           }

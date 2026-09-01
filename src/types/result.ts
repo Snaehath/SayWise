@@ -1,15 +1,6 @@
 import { ChallengeType, Difficulty } from './challenge';
 
 // types
-export type WordStatus = 'perfect' | 'good' | 'needs_work';
-
-export interface WordAnalysis {
-  word: string;
-  ipa: string;
-  status: WordStatus;
-  tip?: string;
-}
-
 export interface MetricDelta {
   score: number;
   direction: 'up' | 'steady' | 'down';
@@ -32,7 +23,6 @@ export type AnalysisResult = {
   feedback: string;
   strengths: string[];
   improvements: string[];
-  words?: WordAnalysis[];
   wpm?: number;
   speakingSeconds?: number;
   personalBestAlert?: string | null;
@@ -55,7 +45,6 @@ export type ChallengeResult = {
   headline?: string;
   tomorrowFocus?: string;
   feedback: string;
-  words?: WordAnalysis[];
   wpm?: number;
   speakingSeconds?: number;
   personalBestAlert?: string | null;

@@ -183,22 +183,23 @@ export const JourneyScreen: React.FC<JourneyScreenProps> = ({ onBack }) => {
             <View className="flex-1 p-3 bg-slate-50 rounded-2xl border border-slate-100">
               <Text className="text-[10px] font-bold text-slate-400 uppercase">Fluency</Text>
               <Text className="text-lg font-black text-slate-900 mt-0.5">
-                {profile.personalBests.highestFluency || 84}
+                {profile.personalBests.highestFluency || '--'}
               </Text>
             </View>
             <View className="flex-1 p-3 bg-slate-50 rounded-2xl border border-slate-100">
               <Text className="text-[10px] font-bold text-slate-400 uppercase">Clarity</Text>
               <Text className="text-lg font-black text-slate-900 mt-0.5">
-                {profile.personalBests.highestClarity || 88}
+                {profile.personalBests.highestClarity || '--'}
               </Text>
             </View>
             <View className="flex-1 p-3 bg-slate-50 rounded-2xl border border-slate-100">
               <Text className="text-[10px] font-bold text-slate-400 uppercase">Overall</Text>
               <Text className="text-lg font-black text-slate-900 mt-0.5">
-                {profile.personalBests.highestOverall || 86}
+                {profile.personalBests.highestOverall || '--'}
               </Text>
             </View>
           </View>
+
         </View>
 
         {/* reset */}

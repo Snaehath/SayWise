@@ -183,14 +183,14 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
           </Animated.View>
         )}
 
-        {/* loading spinner */}
+        {/* loading indicator */}
         {!hasError && (
-          <View className="flex-row items-center gap-2 mt-4 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm">
+          <View className="mt-4">
             <ActivityIndicator size="small" color="#4F46E5" />
-            <Text className="text-xs font-bold text-slate-600">Gemini 2.5 Flash Audio Engine</Text>
           </View>
         )}
       </View>
+
 
       {/* action footer */}
       <View className="w-full">
