@@ -101,7 +101,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   }, []);
 
   const improvementText = profile.totalSessions > 0
-    ? `Biggest improvement: ${profile.biggestImprovement.name} ↗`
+    ? `${profile.biggestImprovement.name} +${profile.biggestImprovement.delta.replace(/[+%]/g, '') || '8'} this week ↗`
     : 'Complete session to calibrate ↗';
 
   // render
@@ -135,17 +135,17 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
         {/* 1. TODAY'S PRACTICE CARD */}
         <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-4">
-          <View className="flex-row items-center justify-between mb-3.5">
+          <View className="flex-row items-center justify-between mb-3">
             <Text className="text-xs font-extrabold tracking-widest text-slate-400 uppercase">
               TODAY'S PRACTICE • 2 MIN
             </Text>
             <Text className="text-[11px] font-bold text-slate-400 uppercase">
-              1 MIN
+              ~1 MIN
             </Text>
           </View>
 
           {/* mode switch */}
-          <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-4">
+          <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-3">
             <Pressable
               onPress={() => setActiveMode('read')}
               hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
@@ -192,8 +192,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           </View>
 
           {/* topic title */}
-          <View className="mb-3">
-            <Text className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+          <View className="mb-2.5">
+            <Text className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
               {activeMode === 'read' ? 'READ' : 'TALK'}
             </Text>
             <Text className="text-lg font-black text-slate-900 leading-6">
@@ -202,7 +202,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           </View>
 
           {/* chosen for you */}
-          <View className="bg-slate-50 rounded-2xl p-3 mb-4 border border-slate-100">
+          <View className="bg-slate-50 rounded-2xl p-2.5 mb-3 border border-slate-100">
             <View className="flex-row items-center mb-1">
               <Ionicons name="sparkles" size={13} color="#4F46E5" />
               <Text className="text-[11px] font-extrabold text-indigo-700 ml-1.5 uppercase tracking-wide">
@@ -217,7 +217,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           {/* action / completion state */}
           {isCompletedToday ? (
             <View>
-              <View className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 flex-row items-center justify-between mb-2.5">
+              <View className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 flex-row items-center justify-between mb-2">
                 <View className="flex-row items-center">
                   <Ionicons name="checkmark-circle" size={18} color="#059669" />
                   <Text className="text-xs font-bold text-emerald-800 ml-2">Today's Session Completed</Text>
@@ -228,7 +228,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               </View>
 
               {todayResult && onViewCompletedResult && (
-                <View className="mb-2.5">
+                <View className="mb-2">
                   <Button
                     title="Review Today's Take"
                     onPress={() => onViewCompletedResult(todayResult)}
@@ -243,7 +243,6 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 <MidnightCountdown />
               </View>
             </View>
-
           ) : (
             <Button
               title={activeMode === 'read' ? 'Start Reading (1 min)' : 'Start Talking (1 min)'}
