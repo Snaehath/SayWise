@@ -15,6 +15,30 @@ function getDayOfYearIndex(arrayLength: number): number {
 
 export const challengeService = {
   getTodayChallenge(difficulty?: Difficulty, mode: PracticeMode = 'read'): Challenge {
+    // If completed today, preserve completed challenge recipe
+    const todayResult = challengeStorage.getTodayResult();
+    if (todayResult && todayResult.challengeTitle && (todayResult.challengeType === mode || (!todayResult.challengeType && mode === 'read'))) {
+      const match = SayWiseChallengeEngine.getAllRecipes().find(
+        (r) => r.topic.toLowerCase() === todayResult.challengeTitle.toLowerCase()
+      );
+      if (match) {
+        return {
+          id: `daily_${match.type}_${match.topic.replace(/\s+/g, '_').toLowerCase()}`,
+          title: match.topic,
+          type: match.type,
+          difficulty: match.difficulty,
+          paragraph: match.prompt,
+          prompt: match.prompt,
+          context: match.context,
+          focusTarget: match.focusTarget,
+          whyChosen: match.whyChosen,
+          prepSeconds: match.prepSeconds || (match.type === 'read' ? 5 : 10),
+          estimatedDurationSec: match.speakingSeconds || (match.type === 'read' ? 35 : 45),
+          focusAreas: match.targets,
+        };
+      }
+    }
+
     const diff = difficulty || challengeStorage.getSelectedDifficulty();
 
     if (mode === 'read') {
