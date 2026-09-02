@@ -1,8 +1,8 @@
 # 🎙️ SayWise
 
-> **Become a better, more natural English speaker in 2 focused minutes a day.**
+> **Become a better, more natural English speaker in 1 focused minute a day.**
 
-SayWise is a mobile speech coaching app that replaces generic language games with an authentic daily speaking ritual. Instead of collecting XP or filling streaks, you spend 2 minutes speaking, receive personalized AI evaluation on how you sound, and get actionable coaching for your next session.
+SayWise is a mobile speech coaching app that replaces generic language games with an authentic daily speaking ritual. Instead of collecting XP or filling streaks, you spend 1 minute speaking, receive personalized AI evaluation on how you sound, and get actionable coaching for your next session.
 
 ---
 
@@ -11,42 +11,41 @@ SayWise is a mobile speech coaching app that replaces generic language games wit
 Most language apps focus on multiple-choice quizzes and grammar drills. **SayWise focuses entirely on voice and speech output:**
 
 ```
-                  TODAY'S 2-MINUTE SPEAK
-                 ┌────────────────────────┐
-                 │  📖 Read Mode (1 min)  │  ➔ Articulation, rhythm & pacing
-                 ├────────────────────────┤
-                 │  🎙️ Talk Mode (1 min)  │  ➔ Spontaneous fluency & confidence
-                 └───────────┬────────────┘
-                             │
-                             ▼
-                    AI SPEECH EVALUATION
-                   Powered by Gemini Audio
-                             │
-                             ▼
-                    PERSONAL COACH TAKE
-                   86/100 • "Clear pronunciation,
-                   bring more life to your voice."
-                   ✨ Biggest: Pacing +11%
-                             │
-                             ▼
-                    ONE THING TO WORK ON
-                   "Vary your pitch and intonation.
-                   Try this tomorrow."
-                             │
-                             ▼
-                      AUDIO REPLAY
-                   Normal (1.0x) / Slow-Mo (0.75x)
+               TODAY'S 1-MINUTE SPEAK
+              ┌────────────────────────┐
+              │  Choose Your Practice  │
+              │  📖 Read   or   🎙️ Talk │
+              └───────────┬────────────┘
+                          │
+                          ▼
+                 AI SPEECH EVALUATION
+                Powered by Gemini Audio
+                          │
+                          ▼
+                 PERSONAL COACH TAKE
+                86/100 • "Clear pronunciation,
+                bring more life to your voice."
+                ✨ Biggest: Pacing +11%
+                          │
+                          ▼
+                 ONE THING TO WORK ON
+                "Vary your pitch and intonation.
+                Try this tomorrow."
+                          │
+                          ▼
+                   AUDIO REPLAY
+                Normal (1.0x) / Slow-Mo (0.75x)
 ```
 
 ---
 
 ## ✨ Core Features
 
-### 1. 📖 Read Mode — *"Read this aloud"* (1 min)
+### 1. 📖 Read Mode — *"Guided Clarity & Cadence"* (~1 min)
 - Read a natural, thought-grouped paragraph aloud.
 - Focuses on pronunciation clarity, consonant articulation, breath pauses, and pacing.
 
-### 2. 🎙️ Talk Mode — *"Talk about this"* (1 min)
+### 2. 🎙️ Talk Mode — *"Spontaneous Fluency"* (~1 min)
 - Receive a real-world dilemma, question, or scenario with a 10-second thinking prep timer.
 - Speak freely for 45–60 seconds to build unscripted fluency, vocabulary retrieval, and vocal confidence.
 

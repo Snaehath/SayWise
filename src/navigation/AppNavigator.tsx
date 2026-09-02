@@ -52,25 +52,32 @@ export const AppNavigator: React.FC = () => {
             onStartChallenge={handleDirectStartChallenge}
             onOpenProfile={goToJourney}
             onViewCompletedResult={(res) =>
-              goToResult(challengeService.getTodayChallenge(), '', {
-                overallScore: res.overallScore,
-                pronunciationScore: res.pronunciationScore,
-                accuracyScore: res.accuracyScore,
-                fluencyScore: res.fluencyScore,
-                pacingScore: res.pacingScore,
-                expressionScore: res.expressionScore,
-                headline: res.headline,
-                tomorrowFocus: res.tomorrowFocus,
-                feedback: res.feedback,
-                words: res.words,
-                wpm: res.wpm,
-                speakingSeconds: res.speakingSeconds,
-                strengths: ['Consistent speech', 'Good pacing'],
-                improvements: ['Keep regular daily practice'],
-              })
+              goToResult(
+                challengeService.getTodayChallenge(
+                  undefined,
+                  res.challengeType === 'talk' ? 'talk' : 'read'
+                ),
+                '',
+                {
+                  overallScore: res.overallScore,
+                  pronunciationScore: res.pronunciationScore,
+                  accuracyScore: res.accuracyScore,
+                  fluencyScore: res.fluencyScore,
+                  pacingScore: res.pacingScore,
+                  expressionScore: res.expressionScore,
+                  headline: res.headline,
+                  tomorrowFocus: res.tomorrowFocus,
+                  feedback: res.feedback,
+                  wpm: res.wpm,
+                  speakingSeconds: res.speakingSeconds,
+                  strengths: ['Consistent speech', 'Good pacing'],
+                  improvements: ['Keep regular daily practice'],
+                }
+              )
             }
           />
         );
+
 
       case 'Journey':
         return <JourneyScreen onBack={goToWelcome} />;

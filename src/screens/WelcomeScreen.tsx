@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
@@ -68,8 +68,6 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const [isCompletedToday, setIsCompletedToday] = useState(false);
   const [todayResult, setTodayResult] = useState<ChallengeResult | null>(null);
   const [profile, setProfile] = useState<SpeakerProfile>(() => challengeStorage.getSpeakerProfile());
-  const [readChallenge, setReadChallenge] = useState<Challenge>(() => challengeService.getTodayChallenge(undefined, 'read'));
-  const [talkChallenge, setTalkChallenge] = useState<Challenge>(() => challengeService.getTodayChallenge(undefined, 'talk'));
 
   // helpers
   const getGreeting = () => {
@@ -83,11 +81,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     setIsCompletedToday(challengeStorage.isCompletedToday());
     setTodayResult(challengeStorage.getTodayResult());
     setProfile(challengeStorage.getSpeakerProfile());
-    setReadChallenge(challengeService.getTodayChallenge(undefined, 'read'));
-    setTalkChallenge(challengeService.getTodayChallenge(undefined, 'talk'));
   };
 
-  const activeChallenge = activeMode === 'read' ? readChallenge : talkChallenge;
+  const activeChallenge = useMemo<Challenge>(() => {
+    return challengeService.getTodayChallenge(undefined, activeMode);
+  }, [activeMode]);
 
   // handlers
   const handleStart = () => {
@@ -99,6 +97,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   useEffect(() => {
     loadState();
   }, []);
+
+  const completedMode = todayResult?.challengeType || 'read';
+  const isViewingCompletedMode = activeMode === completedMode;
 
   const improvementText = profile.totalSessions > 0
     ? `${profile.biggestImprovement.name} +${profile.biggestImprovement.delta.replace(/[+%]/g, '') || '8'} this week ↗`
@@ -122,37 +123,48 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             <Text className="text-2xl font-black text-slate-900 mt-0.5">SayWise</Text>
           </View>
 
-          <Pressable
+          <TouchableOpacity
             onPress={onOpenProfile}
+            activeOpacity={0.7}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            unstable_pressDelay={0}
-            className="px-3 py-1.5 rounded-2xl bg-white border border-slate-200 flex-row items-center shadow-sm shadow-slate-100 active:opacity-75"
+            className="px-3 py-1.5 rounded-2xl bg-white border border-slate-200 flex-row items-center shadow-sm shadow-slate-100"
           >
             <Ionicons name="person-circle-outline" size={18} color="#4F46E5" />
             <Text className="text-xs font-bold text-slate-700 ml-1.5">Profile</Text>
-          </Pressable>
+          </TouchableOpacity>
         </View>
 
         {/* 1. TODAY'S PRACTICE CARD */}
         <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-4">
           <View className="flex-row items-center justify-between mb-3">
             <Text className="text-xs font-extrabold tracking-widest text-slate-400 uppercase">
-              TODAY'S PRACTICE • 2 MIN
+              TODAY'S PRACTICE • ~1 MIN
             </Text>
             <Text className="text-[11px] font-bold text-slate-400 uppercase">
-              ~1 MIN
+              {activeMode === 'read' ? 'READ' : 'TALK'}
             </Text>
           </View>
 
           {/* mode switch */}
           <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-3">
-            <Pressable
+            <TouchableOpacity
               onPress={() => setActiveMode('read')}
+              activeOpacity={0.7}
               hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-              unstable_pressDelay={0}
-              className={`flex-1 py-2 rounded-xl flex-row items-center justify-center active:opacity-80 ${
-                activeMode === 'read' ? 'bg-white shadow-sm' : ''
-              }`}
+              style={{
+                flex: 1,
+                paddingVertical: 8,
+                borderRadius: 12,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: activeMode === 'read' ? '#FFFFFF' : 'transparent',
+                elevation: activeMode === 'read' ? 1 : 0,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: activeMode === 'read' ? 0.08 : 0,
+                shadowRadius: 2,
+              }}
             >
               <Ionicons
                 name="book-outline"
@@ -160,21 +172,35 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 color={activeMode === 'read' ? '#4F46E5' : '#64748B'}
               />
               <Text
-                className={`text-xs font-extrabold ml-1.5 ${
-                  activeMode === 'read' ? 'text-indigo-600' : 'text-slate-500'
-                }`}
+                style={{
+                  fontSize: 12,
+                  fontWeight: '800',
+                  marginLeft: 6,
+                  color: activeMode === 'read' ? '#4F46E5' : '#64748B',
+                }}
               >
                 Read Mode
               </Text>
-            </Pressable>
+            </TouchableOpacity>
 
-            <Pressable
+            <TouchableOpacity
               onPress={() => setActiveMode('talk')}
+              activeOpacity={0.7}
               hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-              unstable_pressDelay={0}
-              className={`flex-1 py-2 rounded-xl flex-row items-center justify-center active:opacity-80 ${
-                activeMode === 'talk' ? 'bg-white shadow-sm' : ''
-              }`}
+              style={{
+                flex: 1,
+                paddingVertical: 8,
+                borderRadius: 12,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: activeMode === 'talk' ? '#FFFFFF' : 'transparent',
+                elevation: activeMode === 'talk' ? 1 : 0,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: activeMode === 'talk' ? 0.08 : 0,
+                shadowRadius: 2,
+              }}
             >
               <Ionicons
                 name="mic-outline"
@@ -182,19 +208,22 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 color={activeMode === 'talk' ? '#D97706' : '#64748B'}
               />
               <Text
-                className={`text-xs font-extrabold ml-1.5 ${
-                  activeMode === 'talk' ? 'text-amber-600' : 'text-slate-500'
-                }`}
+                style={{
+                  fontSize: 12,
+                  fontWeight: '800',
+                  marginLeft: 6,
+                  color: activeMode === 'talk' ? '#D97706' : '#64748B',
+                }}
               >
                 Talk Mode
               </Text>
-            </Pressable>
+            </TouchableOpacity>
           </View>
 
           {/* topic title */}
           <View className="mb-2.5">
             <Text className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
-              {activeMode === 'read' ? 'READ' : 'TALK'}
+              {activeMode === 'read' ? 'READ ALOUD' : 'SPONTANEOUS TOPIC'}
             </Text>
             <Text className="text-lg font-black text-slate-900 leading-6">
               "{activeChallenge.title}"
@@ -217,15 +246,29 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           {/* action / completion state */}
           {isCompletedToday ? (
             <View>
-              <View className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 flex-row items-center justify-between mb-2">
-                <View className="flex-row items-center">
-                  <Ionicons name="checkmark-circle" size={18} color="#059669" />
-                  <Text className="text-xs font-bold text-emerald-800 ml-2">Today's Session Completed</Text>
+              {isViewingCompletedMode ? (
+                <View className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 flex-row items-center justify-between mb-2">
+                  <View className="flex-row items-center">
+                    <Ionicons name="checkmark-circle" size={18} color="#059669" />
+                    <Text className="text-xs font-bold text-emerald-800 ml-2">Today's Session Completed</Text>
+                  </View>
+                  <Text className="text-xs font-black text-emerald-700">
+                    {todayResult?.overallScore ? `${todayResult.overallScore}/100` : 'Done'}
+                  </Text>
                 </View>
-                <Text className="text-xs font-black text-emerald-700">
-                  {todayResult?.overallScore ? `${todayResult.overallScore}/100` : 'Done'}
-                </Text>
-              </View>
+              ) : (
+                <View className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex-row items-center justify-between mb-2">
+                  <View className="flex-row items-center flex-1 mr-2">
+                    <Ionicons name="checkmark-done" size={18} color="#4F46E5" />
+                    <Text className="text-xs font-bold text-slate-700 ml-2">
+                      Practiced in {completedMode === 'read' ? 'Read' : 'Talk'} Mode
+                    </Text>
+                  </View>
+                  <Text className="text-[11px] font-bold text-slate-400">
+                    Done
+                  </Text>
+                </View>
+              )}
 
               {todayResult && onViewCompletedResult && (
                 <View className="mb-2">
@@ -255,9 +298,10 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         </View>
 
         {/* 2. YOUR SPEAKING CARD */}
-        <Pressable
+        <TouchableOpacity
           onPress={onOpenProfile}
-          className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm active:opacity-90"
+          activeOpacity={0.8}
+          className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm"
         >
           <View className="flex-row items-center justify-between mb-3.5 pb-2.5 border-b border-slate-100">
             <Text className="text-xs font-extrabold text-slate-400 tracking-wider uppercase">YOUR SPEAKING</Text>
@@ -283,7 +327,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               <Ionicons name="chevron-forward" size={12} color="#4F46E5" />
             </View>
           </View>
-        </Pressable>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );

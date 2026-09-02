@@ -39,47 +39,13 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
   const startTimeRef = useRef<number>(0);
   const activeUriRef = useRef<string | null>(null);
 
-  // effects
-  useEffect(() => {
-    if (isPrepping && prepSecondsLeft > 0) {
-      prepTimerRef.current = setInterval(() => {
-        setPrepSecondsLeft((prev) => {
-          if (prev <= 1) {
-            if (prepTimerRef.current) clearInterval(prepTimerRef.current);
-            setIsPrepping(false);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (prepTimerRef.current) clearInterval(prepTimerRef.current);
-    };
-  }, [isPrepping]);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (prepTimerRef.current) clearInterval(prepTimerRef.current);
-      try {
-        if (audioRecorder.isRecording) {
-          audioRecorder.stop();
-        }
-      } catch {
-        // cleanup
-      }
-    };
-  }, []);
-
   // handlers
   const handleStartRecording = async () => {
     if (prepTimerRef.current) {
       clearInterval(prepTimerRef.current);
-      setIsPrepping(false);
+      prepTimerRef.current = null;
     }
-
+    setIsPrepping(false);
     setIsPreparing(true);
     setPermissionDenied(false);
 
@@ -113,6 +79,41 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
       setIsPreparing(false);
     }
   };
+
+  // effects
+  useEffect(() => {
+    if (isPrepping && prepSecondsLeft > 0) {
+      prepTimerRef.current = setInterval(() => {
+        setPrepSecondsLeft((prev) => {
+          if (prev <= 1) {
+            if (prepTimerRef.current) clearInterval(prepTimerRef.current);
+            prepTimerRef.current = null;
+            handleStartRecording();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (prepTimerRef.current) clearInterval(prepTimerRef.current);
+    };
+  }, [isPrepping]);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (prepTimerRef.current) clearInterval(prepTimerRef.current);
+      try {
+        if (audioRecorder.isRecording) {
+          audioRecorder.stop();
+        }
+      } catch {
+        // cleanup
+      }
+    };
+  }, []);
 
   const handleStopRecording = async () => {
     if (timerRef.current) {
@@ -227,21 +228,21 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
 
         {/* prep banner */}
         {isPrepping && prepSecondsLeft > 0 && !isRecording && (
-          <View className="bg-indigo-50 rounded-2xl p-4 border border-indigo-100 flex-row items-center justify-between mb-4">
-            <View className="flex-row items-center">
-              <Ionicons name="timer-outline" size={20} color="#4F46E5" />
-              <View className="ml-2.5">
-                <Text className="text-xs font-bold text-indigo-900">Take 10s to organize your thoughts</Text>
-                <Text className="text-[11px] text-indigo-600">Starting in {prepSecondsLeft}s...</Text>
+          <View className="bg-amber-50 rounded-2xl p-4 border border-amber-200 flex-row items-center justify-between mb-4">
+            <View className="flex-row items-center flex-1 pr-2">
+              <Ionicons name="timer-outline" size={22} color="#D97706" />
+              <View className="ml-2.5 flex-1">
+                <Text className="text-xs font-extrabold text-amber-950">Organize your thoughts</Text>
+                <Text className="text-[11px] font-semibold text-amber-700 mt-0.5">Recording begins in {prepSecondsLeft}s...</Text>
               </View>
             </View>
             <Pressable
               onPress={handleStartRecording}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               unstable_pressDelay={0}
-              className="px-3 py-1.5 rounded-xl bg-indigo-600 active:opacity-80"
+              className="px-3.5 py-2 rounded-xl bg-amber-600 active:opacity-80"
             >
-              <Text className="text-xs font-bold text-white">Ready Now</Text>
+              <Text className="text-xs font-extrabold text-white">Ready Now</Text>
             </Pressable>
           </View>
         )}
@@ -273,7 +274,7 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
         ) : (
           <View className="w-full">
             <Button
-              title={isPrepping ? `Start Speaking (${prepSecondsLeft}s)` : 'Start Speaking'}
+              title={isPrepping ? `Start Speaking Now (${prepSecondsLeft}s)` : 'Start Speaking'}
               onPress={handleStartRecording}
               variant="primary"
               size="lg"
