@@ -81,13 +81,16 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
 
   // genuine session-to-session deltas
   const history = challengeStorage.getHistory();
-  const previousSession = history.find((h) => h.completedAt !== (result as ChallengeResult).completedAt) || history[0];
-  const hasPrevious = history.length > 0 && previousSession && previousSession.completedAt !== (result as ChallengeResult).completedAt;
+  const isReviewingToday = challengeStorage.isCompletedToday();
+  const previousSession = isReviewingToday ? history[1] : history[0];
+  const hasPrevious = Boolean(previousSession);
 
-  const prevClarity = hasPrevious ? Math.round((previousSession.accuracyScore + previousSession.pronunciationScore) / 2) : null;
-  const prevFluency = hasPrevious ? previousSession.fluencyScore : null;
-  const prevPacing = hasPrevious ? previousSession.pacingScore : null;
-  const prevExpression = hasPrevious ? (previousSession.expressionScore || 70) : null;
+  const prevClarity = hasPrevious && previousSession
+    ? Math.round((previousSession.accuracyScore + previousSession.pronunciationScore) / 2)
+    : null;
+  const prevFluency = hasPrevious && previousSession ? previousSession.fluencyScore : null;
+  const prevPacing = hasPrevious && previousSession ? previousSession.pacingScore : null;
+  const prevExpression = hasPrevious && previousSession ? (previousSession.expressionScore || 70) : null;
 
   const currentClarity = Math.round((result.accuracyScore + result.pronunciationScore) / 2);
   const currentExpression = result.expressionScore || 65;
