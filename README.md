@@ -130,6 +130,7 @@ saywise/
 │   │   ├── AudioShadowPlayer.tsx # Take playback with 1.0x / 0.75x speed toggle
 │   │   ├── Button.tsx         # Tactile button with instant touch response
 │   │   ├── Header.tsx         # App navigation header
+│   │   ├── MetricProgressBar.tsx # Speaking metric progress meter
 │   │   └── RecordingVisualizer.tsx # GPU native-driver audio waveform equalizer
 │   ├── data/                  # Curated daily speaking curriculum
 │   │   └── challenges.ts      # Read & Talk scenario recipes
@@ -140,7 +141,6 @@ saywise/
 │   │   ├── ChallengeScreen.tsx# Speaking screen with prep timer & recording
 │   │   ├── AnalysisScreen.tsx # AI speech processing state
 │   │   ├── ResultScreen.tsx   # Coach headline, metrics & one thing to improve
-│   │   ├── CompletionScreen.tsx# Session completion closure
 │   │   └── JourneyScreen.tsx  # Speaking progression, records & weekly consistency
 │   ├── services/              # Business logic & API
 │   │   ├── analysisService.ts # Gemini multi-modal audio evaluation

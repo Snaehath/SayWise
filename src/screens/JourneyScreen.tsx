@@ -3,6 +3,7 @@ import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Header } from '../components/Header';
+import { MetricProgressBar } from '../components/MetricProgressBar';
 import { challengeStorage } from '../storage/challengeStorage';
 import { SpeakerProfile } from '../types/result';
 
@@ -74,10 +75,10 @@ export const JourneyScreen: React.FC<JourneyScreenProps> = ({ onBack }) => {
 
           {/* metrics */}
           <View className="space-y-2 mb-3">
-            <MetricRow label="Fluency" score={profile.fluencyScore} isCalibrated={profile.isCalibrated} />
-            <MetricRow label="Clarity" score={profile.clarityScore} isCalibrated={profile.isCalibrated} />
-            <MetricRow label="Pacing" score={profile.pacingScore} isCalibrated={profile.isCalibrated} />
-            <MetricRow label="Expression" score={profile.expressionScore} isCalibrated={profile.isCalibrated} />
+            <MetricProgressBar label="Fluency" score={profile.fluencyScore} isCalibrated={profile.isCalibrated} />
+            <MetricProgressBar label="Clarity" score={profile.clarityScore} isCalibrated={profile.isCalibrated} />
+            <MetricProgressBar label="Pacing" score={profile.pacingScore} isCalibrated={profile.isCalibrated} />
+            <MetricProgressBar label="Expression" score={profile.expressionScore} isCalibrated={profile.isCalibrated} />
           </View>
         </View>
 
@@ -220,30 +221,6 @@ export const JourneyScreen: React.FC<JourneyScreenProps> = ({ onBack }) => {
           <Text className="text-xs font-bold text-rose-700">Reset Speaking History</Text>
         </Pressable>
       </ScrollView>
-    </View>
-  );
-};
-
-// types
-interface MetricRowProps {
-  label: string;
-  score: number;
-  isCalibrated?: boolean;
-}
-
-const MetricRow: React.FC<MetricRowProps> = ({ label, score, isCalibrated = true }) => {
-  return (
-    <View className="flex-row items-center justify-between my-1">
-      <Text className="text-xs font-bold text-slate-600 w-24">{label}</Text>
-      <View className="flex-1 h-2 bg-slate-100 rounded-full mx-3 overflow-hidden">
-        <View
-          className="h-full bg-slate-800 rounded-full"
-          style={{ width: isCalibrated ? `${Math.min(100, Math.max(10, score))}%` : '0%' }}
-        />
-      </View>
-      <Text className="text-xs font-bold text-slate-800 w-8 text-right">
-        {isCalibrated ? score : '—'}
-      </Text>
     </View>
   );
 };

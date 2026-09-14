@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AudioShadowPlayer } from '../components/AudioShadowPlayer';
 import { Button } from '../components/Button';
 import { Header } from '../components/Header';
+import { MetricProgressBar } from '../components/MetricProgressBar';
 import { recordingService } from '../services/recordingService';
 import { challengeStorage } from '../storage/challengeStorage';
 import { Challenge } from '../types/challenge';
@@ -171,10 +172,10 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
           </Text>
 
           <View className="space-y-2">
-            <ResultMetricRow label="Fluency" score={result.fluencyScore} delta={formatDelta(result.fluencyScore, prevFluency)} />
-            <ResultMetricRow label="Clarity" score={currentClarity} delta={formatDelta(currentClarity, prevClarity)} />
-            <ResultMetricRow label="Pacing" score={result.pacingScore} delta={formatDelta(result.pacingScore, prevPacing)} />
-            <ResultMetricRow label="Expression" score={currentExpression} delta={formatDelta(currentExpression, prevExpression)} />
+            <MetricProgressBar label="Fluency" score={result.fluencyScore} delta={formatDelta(result.fluencyScore, prevFluency)} />
+            <MetricProgressBar label="Clarity" score={currentClarity} delta={formatDelta(currentClarity, prevClarity)} />
+            <MetricProgressBar label="Pacing" score={result.pacingScore} delta={formatDelta(result.pacingScore, prevPacing)} />
+            <MetricProgressBar label="Expression" score={currentExpression} delta={formatDelta(currentExpression, prevExpression)} />
           </View>
         </View>
 
@@ -194,31 +195,6 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
           loading={isSaving}
           icon="checkmark-done"
         />
-      </View>
-    </View>
-  );
-};
-
-// types
-interface ResultMetricRowProps {
-  label: string;
-  score: number;
-  delta: { text: string; color: string };
-}
-
-const ResultMetricRow: React.FC<ResultMetricRowProps> = ({ label, score, delta }) => {
-  return (
-    <View className="flex-row items-center justify-between my-1">
-      <Text className="text-xs font-bold text-slate-600 w-24">{label}</Text>
-      <View className="flex-1 h-2 bg-slate-100 rounded-full mx-3 overflow-hidden">
-        <View
-          className="h-full bg-slate-800 rounded-full"
-          style={{ width: `${Math.min(100, Math.max(10, score))}%` }}
-        />
-      </View>
-      <View className="flex-row items-center justify-end w-14">
-        <Text className="text-xs font-black text-slate-900 mr-1.5">{score}</Text>
-        <Text className={`text-xs font-black ${delta.color}`}>{delta.text}</Text>
       </View>
     </View>
   );

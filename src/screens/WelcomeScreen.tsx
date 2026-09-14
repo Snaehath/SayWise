@@ -3,6 +3,7 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
+import { MetricProgressBar } from '../components/MetricProgressBar';
 import { challengeService } from '../services/challengeService';
 import { challengeStorage } from '../storage/challengeStorage';
 import { Challenge, PracticeMode } from '../types/challenge';
@@ -346,10 +347,10 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
           {/* 4 skill meters */}
           <View className="space-y-2 mb-3">
-            <ProgressMetricRow label="Fluency" score={profile.fluencyScore} isCalibrated={profile.isCalibrated} />
-            <ProgressMetricRow label="Clarity" score={profile.clarityScore} isCalibrated={profile.isCalibrated} />
-            <ProgressMetricRow label="Pacing" score={profile.pacingScore} isCalibrated={profile.isCalibrated} />
-            <ProgressMetricRow label="Expression" score={profile.expressionScore} isCalibrated={profile.isCalibrated} />
+            <MetricProgressBar label="Fluency" score={profile.fluencyScore} isCalibrated={profile.isCalibrated} />
+            <MetricProgressBar label="Clarity" score={profile.clarityScore} isCalibrated={profile.isCalibrated} />
+            <MetricProgressBar label="Pacing" score={profile.pacingScore} isCalibrated={profile.isCalibrated} />
+            <MetricProgressBar label="Expression" score={profile.expressionScore} isCalibrated={profile.isCalibrated} />
           </View>
 
           {/* footer */}
@@ -362,30 +363,6 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           </View>
         </TouchableOpacity>
       </ScrollView>
-    </View>
-  );
-};
-
-// types
-interface ProgressMetricRowProps {
-  label: string;
-  score: number;
-  isCalibrated?: boolean;
-}
-
-const ProgressMetricRow: React.FC<ProgressMetricRowProps> = ({ label, score, isCalibrated = true }) => {
-  return (
-    <View className="flex-row items-center justify-between my-1">
-      <Text className="text-xs font-bold text-slate-600 w-24">{label}</Text>
-      <View className="flex-1 h-2 bg-slate-100 rounded-full mx-3 overflow-hidden">
-        <View
-          className="h-full bg-slate-800 rounded-full"
-          style={{ width: isCalibrated ? `${Math.min(100, Math.max(10, score))}%` : '0%' }}
-        />
-      </View>
-      <Text className="text-xs font-bold text-slate-800 w-8 text-right">
-        {isCalibrated ? score : '—'}
-      </Text>
     </View>
   );
 };

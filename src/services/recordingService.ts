@@ -4,9 +4,7 @@ import { File } from 'expo-file-system';
 export type PermissionStatus = 'granted' | 'denied' | 'undetermined';
 
 export const recordingService = {
-  /**
-   * Check current microphone permission status
-   */
+  // check permission
   async getPermissionStatus(): Promise<PermissionStatus> {
     try {
       const response = await AudioModule.getRecordingPermissionsAsync();
@@ -19,9 +17,7 @@ export const recordingService = {
     }
   },
 
-  /**
-   * Request microphone permission from user
-   */
+  // request permission
   async requestPermission(): Promise<boolean> {
     try {
       const response = await AudioModule.requestRecordingPermissionsAsync();
@@ -32,9 +28,7 @@ export const recordingService = {
     }
   },
 
-  /**
-   * Safely delete a temporary audio file from cache/filesystem
-   */
+  // delete temporary audio
   async deleteTemporaryAudio(audioPath: string | null | undefined): Promise<void> {
     if (!audioPath) return;
     try {
