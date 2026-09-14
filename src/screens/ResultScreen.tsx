@@ -75,8 +75,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   };
 
   const headline = result.headline || 'Clear pronunciation, but bring more life to your voice.';
-  const tomorrowFocus = result.tomorrowFocus || 'Vary your pitch and intonation. Try this in your next session.';
-  const biggestImprovement = result.biggestImprovement || { name: 'Pacing', delta: '+11%' };
+  const tomorrowFocus = result.tomorrowFocus || 'Vary your pitch and intonation in your next session.';
   const spokenDuration = result.speakingSeconds || 45;
 
   // render
@@ -101,7 +100,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
           </View>
         )}
 
-        {/* top card */}
+        {/* 1. OVERALL SCORE & HEADLINE (EMOTIONAL PAYOFF) */}
         <View className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm mb-4">
           <View className="flex-row items-center justify-between mb-3 pb-3 border-b border-slate-100">
             <Text className="text-xs font-extrabold text-slate-400 tracking-wider uppercase">
@@ -114,31 +113,38 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
           </View>
 
           {/* headline */}
-          <Text className="text-xl font-black text-slate-900 leading-7 mb-4">
+          <Text className="text-xl font-black text-slate-900 leading-7">
             "{headline}"
           </Text>
-
-          {/* highlights */}
-          <View className="flex-row items-center justify-between pt-3 border-t border-slate-100">
-            <View className="flex-1 mr-2">
-              <Text className="text-[11px] font-semibold text-slate-400 uppercase">✨ Biggest Improvement</Text>
-              <Text className="text-sm font-extrabold text-emerald-700 mt-0.5">
-                {biggestImprovement.name} {biggestImprovement.delta}
-              </Text>
-            </View>
-            <View className="flex-1 pl-2 border-l border-slate-100">
-              <Text className="text-[11px] font-semibold text-slate-400 uppercase">🎯 Focus Area</Text>
-              <Text className="text-sm font-extrabold text-indigo-700 mt-0.5">
-                Expression
-              </Text>
-            </View>
-          </View>
         </View>
 
-        {/* 4 metrics */}
+        {/* 2. 🎯 YOUR FOCUS (ACTIONABLE COACHING STAR) */}
+        <View className="bg-indigo-50/90 rounded-3xl p-5 border border-indigo-100 shadow-sm mb-4">
+          <View className="flex-row items-center mb-2.5">
+            <Ionicons name="sparkles" size={16} color="#4F46E5" />
+            <Text className="text-xs font-black text-indigo-700 tracking-wider uppercase ml-1.5">
+              🎯 YOUR FOCUS
+            </Text>
+          </View>
+
+          <Text className="text-[11px] font-bold text-indigo-500 uppercase tracking-wide mb-1">
+            One thing to work on:
+          </Text>
+          <Text className="text-base font-black text-indigo-950 leading-6">
+            {tomorrowFocus}
+          </Text>
+
+          {result.feedback ? (
+            <Text className="text-xs text-indigo-800/90 font-medium leading-4.5 mt-2.5 pt-2.5 border-t border-indigo-200/60">
+              {result.feedback}
+            </Text>
+          ) : null}
+        </View>
+
+        {/* 3. 4 CORE METRICS */}
         <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-4">
           <Text className="text-xs font-extrabold text-slate-400 tracking-wider uppercase mb-3 pb-2 border-b border-slate-100">
-            YOUR SPEAKING
+            YOUR SPEAKING METRICS
           </Text>
 
           <View className="space-y-2">
@@ -149,29 +155,13 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
           </View>
         </View>
 
-        {/* one thing to work on */}
-        <View className="bg-indigo-50 rounded-3xl p-5 border border-indigo-100 mb-4">
-          <View className="flex-row items-center mb-2">
-            <Ionicons name="sparkles" size={16} color="#4F46E5" />
-            <Text className="text-xs font-extrabold text-indigo-700 tracking-wider uppercase ml-1.5">
-              ONE THING TO WORK ON
-            </Text>
-          </View>
-          <Text className="text-base font-extrabold text-indigo-950 leading-6">
-            {tomorrowFocus}
-          </Text>
-          <Text className="text-xs font-semibold text-indigo-600 mt-2">
-            Try this in your next practice session.
-          </Text>
-        </View>
-
-        {/* audio player */}
+        {/* 4. AUDIO SHADOW REPLAY */}
         <View className="mb-4">
           <AudioShadowPlayer audioPath={audioPath} />
         </View>
       </ScrollView>
 
-      {/* action */}
+      {/* 5. ACTION: DONE FOR TODAY */}
       <View className="bg-white px-5 pt-3.5 pb-6 border-t border-slate-200 shadow-lg">
         <Button
           title="Done for Today"

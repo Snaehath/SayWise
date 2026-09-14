@@ -115,6 +115,10 @@ export function getTodayDateString(): string {
 }
 
 export const challengeStorage = {
+  isBaselineSession(): boolean {
+    return challengeStorage.getHistory().length === 0;
+  },
+
   getSpeakerProfile(): SpeakerProfile {
     const history = challengeStorage.getHistory();
     const totalSessions = history.length;

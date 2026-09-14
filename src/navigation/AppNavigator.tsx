@@ -3,7 +3,6 @@ import { View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { AnalysisScreen } from '../screens/AnalysisScreen';
 import { ChallengeScreen } from '../screens/ChallengeScreen';
-import { CompletionScreen } from '../screens/CompletionScreen';
 import { JourneyScreen } from '../screens/JourneyScreen';
 import { ResultScreen } from '../screens/ResultScreen';
 import { WelcomeScreen } from '../screens/WelcomeScreen';
@@ -18,8 +17,7 @@ type ScreenState =
   | { name: 'Journey' }
   | { name: 'Challenge'; difficulty: Difficulty; challenge: Challenge }
   | { name: 'Analysis'; challenge: Challenge; audioPath: string; durationSec: number }
-  | { name: 'Result'; challenge: Challenge; audioPath: string; result: AnalysisResult }
-  | { name: 'Completion'; result: ChallengeResult };
+  | { name: 'Result'; challenge: Challenge; audioPath: string; result: AnalysisResult };
 
 export const AppNavigator: React.FC = () => {
   // state
@@ -34,8 +32,6 @@ export const AppNavigator: React.FC = () => {
     setCurrentScreen({ name: 'Analysis', challenge, audioPath, durationSec });
   const goToResult = (challenge: Challenge, audioPath: string, result: AnalysisResult) =>
     setCurrentScreen({ name: 'Result', challenge, audioPath, result });
-  const goToCompletion = (result: ChallengeResult) =>
-    setCurrentScreen({ name: 'Completion', result });
 
   const handleDirectStartChallenge = (existingChallenge?: Challenge) => {
     const activeDiff = challengeStorage.getSelectedDifficulty();
@@ -78,7 +74,6 @@ export const AppNavigator: React.FC = () => {
           />
         );
 
-
       case 'Journey':
         return <JourneyScreen onBack={goToWelcome} />;
 
@@ -114,16 +109,8 @@ export const AppNavigator: React.FC = () => {
             challenge={currentScreen.challenge}
             audioPath={currentScreen.audioPath}
             result={currentScreen.result}
-            onComplete={goToCompletion}
+            onComplete={goToWelcome}
             onBackToHome={goToWelcome}
-          />
-        );
-
-      case 'Completion':
-        return (
-          <CompletionScreen
-            result={currentScreen.result}
-            onComeAgain={goToWelcome}
           />
         );
 

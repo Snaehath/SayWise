@@ -105,6 +105,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     ? `${profile.biggestImprovement.name} +${profile.biggestImprovement.delta.replace(/[+%]/g, '') || '8'} this week ↗`
     : 'Complete session to calibrate ↗';
 
+  const isBaseline = profile.totalSessions === 0;
+
   // render
   return (
     <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
@@ -134,11 +136,15 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           </TouchableOpacity>
         </View>
 
-        {/* 1. TODAY'S PRACTICE CARD */}
+        {/* 1. TODAY'S PRACTICE / BASELINE CARD */}
         <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-4">
           <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-xs font-extrabold tracking-widest text-slate-400 uppercase">
-              TODAY'S PRACTICE • ~1 MIN
+            <Text
+              className={`text-xs font-black tracking-widest uppercase ${
+                isBaseline && !isCompletedToday ? 'text-indigo-600' : 'text-slate-400'
+              }`}
+            >
+              {isBaseline && !isCompletedToday ? 'BASELINE CALIBRATION • ~1 MIN' : "TODAY'S PRACTICE • ~1 MIN"}
             </Text>
             <Text className="text-[11px] font-bold text-slate-400 uppercase">
               {activeMode === 'read' ? 'READ' : 'TALK'}
@@ -230,18 +236,32 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             </Text>
           </View>
 
-          {/* chosen for you */}
-          <View className="bg-slate-50 rounded-2xl p-2.5 mb-3 border border-slate-100">
-            <View className="flex-row items-center mb-1">
-              <Ionicons name="sparkles" size={13} color="#4F46E5" />
-              <Text className="text-[11px] font-extrabold text-indigo-700 ml-1.5 uppercase tracking-wide">
-                CHOSEN FOR YOU
+          {/* baseline or chosen for you info */}
+          {isBaseline && !isCompletedToday ? (
+            <View className="bg-indigo-50/80 rounded-2xl p-3 mb-3 border border-indigo-100">
+              <View className="flex-row items-center mb-1">
+                <Ionicons name="sparkles" size={13} color="#4F46E5" />
+                <Text className="text-[11px] font-extrabold text-indigo-700 ml-1.5 uppercase tracking-wide">
+                  STARTING VOICE PROFILE
+                </Text>
+              </View>
+              <Text className="text-xs text-indigo-950 font-semibold leading-4.5">
+                Let's hear you speak for 60 seconds. We'll use this as your starting voice profile.
               </Text>
             </View>
-            <Text className="text-xs text-slate-600 leading-4.5">
-              {activeChallenge.whyChosen || activeChallenge.focusTarget || 'Calibrated to build steady speaking cadence and clear articulation.'}
-            </Text>
-          </View>
+          ) : (
+            <View className="bg-slate-50 rounded-2xl p-2.5 mb-3 border border-slate-100">
+              <View className="flex-row items-center mb-1">
+                <Ionicons name="sparkles" size={13} color="#4F46E5" />
+                <Text className="text-[11px] font-extrabold text-indigo-700 ml-1.5 uppercase tracking-wide">
+                  CHOSEN FOR YOU
+                </Text>
+              </View>
+              <Text className="text-xs text-slate-600 leading-4.5">
+                {activeChallenge.whyChosen || activeChallenge.focusTarget || 'Calibrated to build steady speaking cadence and clear articulation.'}
+              </Text>
+            </View>
+          )}
 
           {/* action / completion state */}
           {isCompletedToday ? (
@@ -288,7 +308,13 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             </View>
           ) : (
             <Button
-              title={activeMode === 'read' ? 'Start Reading (1 min)' : 'Start Talking (1 min)'}
+              title={
+                isBaseline
+                  ? 'Start Calibration (1 min)'
+                  : activeMode === 'read'
+                  ? 'Start Reading (1 min)'
+                  : 'Start Talking (1 min)'
+              }
               onPress={handleStart}
               variant="primary"
               icon={activeMode === 'read' ? 'book-outline' : 'mic'}
