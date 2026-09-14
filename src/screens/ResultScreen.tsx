@@ -78,6 +78,29 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   const tomorrowFocus = result.tomorrowFocus || 'Vary your pitch and intonation in your next session.';
   const spokenDuration = result.speakingSeconds || 45;
 
+  // genuine session-to-session deltas
+  const history = challengeStorage.getHistory();
+  const previousSession = history.find((h) => h.completedAt !== (result as ChallengeResult).completedAt) || history[0];
+  const hasPrevious = history.length > 0 && previousSession && previousSession.completedAt !== (result as ChallengeResult).completedAt;
+
+  const prevClarity = hasPrevious ? Math.round((previousSession.accuracyScore + previousSession.pronunciationScore) / 2) : null;
+  const prevFluency = hasPrevious ? previousSession.fluencyScore : null;
+  const prevPacing = hasPrevious ? previousSession.pacingScore : null;
+  const prevExpression = hasPrevious ? (previousSession.expressionScore || 70) : null;
+
+  const currentClarity = Math.round((result.accuracyScore + result.pronunciationScore) / 2);
+  const currentExpression = result.expressionScore || 65;
+
+  const formatDelta = (curr: number, prev: number | null): { text: string; color: string } => {
+    if (prev === null) {
+      return { text: '—', color: 'text-slate-400' };
+    }
+    const diff = curr - prev;
+    if (diff > 0) return { text: `+${diff}`, color: 'text-emerald-600' };
+    if (diff < 0) return { text: `${diff}`, color: 'text-rose-500' };
+    return { text: '0', color: 'text-slate-400' };
+  };
+
   // render
   return (
     <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
@@ -148,10 +171,10 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
           </Text>
 
           <View className="space-y-2">
-            <ResultMetricRow label="Fluency" score={result.fluencyScore} delta="↑" />
-            <ResultMetricRow label="Clarity" score={Math.round((result.accuracyScore + result.pronunciationScore) / 2)} delta="→" />
-            <ResultMetricRow label="Pacing" score={result.pacingScore} delta="↑" />
-            <ResultMetricRow label="Expression" score={result.expressionScore || 65} delta="↑" />
+            <ResultMetricRow label="Fluency" score={result.fluencyScore} delta={formatDelta(result.fluencyScore, prevFluency)} />
+            <ResultMetricRow label="Clarity" score={currentClarity} delta={formatDelta(currentClarity, prevClarity)} />
+            <ResultMetricRow label="Pacing" score={result.pacingScore} delta={formatDelta(result.pacingScore, prevPacing)} />
+            <ResultMetricRow label="Expression" score={currentExpression} delta={formatDelta(currentExpression, prevExpression)} />
           </View>
         </View>
 
@@ -180,7 +203,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
 interface ResultMetricRowProps {
   label: string;
   score: number;
-  delta: string;
+  delta: { text: string; color: string };
 }
 
 const ResultMetricRow: React.FC<ResultMetricRowProps> = ({ label, score, delta }) => {
@@ -193,9 +216,9 @@ const ResultMetricRow: React.FC<ResultMetricRowProps> = ({ label, score, delta }
           style={{ width: `${Math.min(100, Math.max(10, score))}%` }}
         />
       </View>
-      <View className="flex-row items-center justify-end w-12">
-        <Text className="text-xs font-black text-slate-900 mr-1">{score}</Text>
-        <Text className="text-xs font-black text-emerald-600">{delta}</Text>
+      <View className="flex-row items-center justify-end w-14">
+        <Text className="text-xs font-black text-slate-900 mr-1.5">{score}</Text>
+        <Text className={`text-xs font-black ${delta.color}`}>{delta.text}</Text>
       </View>
     </View>
   );

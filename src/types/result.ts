@@ -62,6 +62,7 @@ export interface PersonalBests {
 }
 
 export interface SpeakerProfile {
+  isCalibrated: boolean;
   overallScore: number;
   clarityScore: number;
   fluencyScore: number;
@@ -71,6 +72,14 @@ export interface SpeakerProfile {
   biggestImprovement: {
     name: string;
     delta: string;
+  };
+  topSkill?: {
+    name: string;
+    score: number;
+  };
+  bestHistoricalGrowth?: {
+    name: string;
+    delta: number;
   };
   totalSessions: number;
   sessionsThisWeek: number;

@@ -4,6 +4,10 @@
 
 SayWise is a mobile speech coaching app that replaces generic language games with an authentic daily speaking ritual. Instead of collecting XP or filling streaks, you spend 1 minute speaking, receive personalized AI evaluation on how you sound, and get actionable coaching for your next session.
 
+> **Core Principle: SayWise V1 optimizes for consistency, not completeness.**  
+> The goal isn't to teach *everything* about English. It's to make you think:  
+> *"I have one minute. I'll speak."* ➔ *"Now I know what to improve."* ➔ *"Let me try again tomorrow."*
+
 ---
 
 ## 🌟 What is SayWise?

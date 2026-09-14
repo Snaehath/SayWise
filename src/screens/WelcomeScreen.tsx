@@ -50,7 +50,7 @@ const MidnightCountdown: React.FC = React.memo(() => {
   // render
   return (
     <Text className="text-xs font-medium text-slate-400">
-      Next challenge in {timeLeft.hours}h {timeLeft.minutes}m
+      Next practice in {timeLeft.hours}h {timeLeft.minutes}m
     </Text>
   );
 });
@@ -330,19 +330,26 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm"
         >
           <View className="flex-row items-center justify-between mb-3.5 pb-2.5 border-b border-slate-100">
-            <Text className="text-xs font-extrabold text-slate-400 tracking-wider uppercase">YOUR SPEAKING</Text>
+            <View>
+              <Text className="text-xs font-extrabold text-slate-400 tracking-wider uppercase">YOUR SPEAKING</Text>
+              {!profile.isCalibrated && (
+                <Text className="text-[11px] font-medium text-slate-400 mt-0.5">Not calibrated yet</Text>
+              )}
+            </View>
             <View className="flex-row items-baseline">
-              <Text className="text-lg font-black text-slate-900">{profile.overallScore}</Text>
+              <Text className="text-lg font-black text-slate-900">
+                {profile.isCalibrated ? profile.overallScore : '—'}
+              </Text>
               <Text className="text-xs font-bold text-slate-400 ml-0.5">/100</Text>
             </View>
           </View>
 
           {/* 4 skill meters */}
           <View className="space-y-2 mb-3">
-            <ProgressMetricRow label="Fluency" score={profile.fluencyScore} />
-            <ProgressMetricRow label="Clarity" score={profile.clarityScore} />
-            <ProgressMetricRow label="Pacing" score={profile.pacingScore} />
-            <ProgressMetricRow label="Expression" score={profile.expressionScore} />
+            <ProgressMetricRow label="Fluency" score={profile.fluencyScore} isCalibrated={profile.isCalibrated} />
+            <ProgressMetricRow label="Clarity" score={profile.clarityScore} isCalibrated={profile.isCalibrated} />
+            <ProgressMetricRow label="Pacing" score={profile.pacingScore} isCalibrated={profile.isCalibrated} />
+            <ProgressMetricRow label="Expression" score={profile.expressionScore} isCalibrated={profile.isCalibrated} />
           </View>
 
           {/* footer */}
@@ -363,19 +370,22 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 interface ProgressMetricRowProps {
   label: string;
   score: number;
+  isCalibrated?: boolean;
 }
 
-const ProgressMetricRow: React.FC<ProgressMetricRowProps> = ({ label, score }) => {
+const ProgressMetricRow: React.FC<ProgressMetricRowProps> = ({ label, score, isCalibrated = true }) => {
   return (
     <View className="flex-row items-center justify-between my-1">
       <Text className="text-xs font-bold text-slate-600 w-24">{label}</Text>
       <View className="flex-1 h-2 bg-slate-100 rounded-full mx-3 overflow-hidden">
         <View
           className="h-full bg-slate-800 rounded-full"
-          style={{ width: `${Math.min(100, Math.max(10, score))}%` }}
+          style={{ width: isCalibrated ? `${Math.min(100, Math.max(10, score))}%` : '0%' }}
         />
       </View>
-      <Text className="text-xs font-bold text-slate-800 w-8 text-right">{score}</Text>
+      <Text className="text-xs font-bold text-slate-800 w-8 text-right">
+        {isCalibrated ? score : '—'}
+      </Text>
     </View>
   );
 };

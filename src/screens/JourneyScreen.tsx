@@ -51,26 +51,33 @@ export const JourneyScreen: React.FC<JourneyScreenProps> = ({ onBack }) => {
         {/* overall card */}
         <View className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm mb-4">
           <View className="flex-row items-center justify-between mb-4 pb-3 border-b border-slate-100">
-            <View>
+            <View className="flex-1 mr-3">
               <Text className="text-xs font-extrabold text-slate-400 tracking-wider uppercase">
                 OVERALL PROFILE
               </Text>
               <Text className="text-sm font-extrabold text-slate-700 mt-0.5">
-                {profile.growthSummary}
+                {profile.isCalibrated ? profile.growthSummary : 'Not calibrated yet'}
               </Text>
+              {!profile.isCalibrated && (
+                <Text className="text-xs text-slate-400 mt-0.5">
+                  Complete your first session to establish your starting profile.
+                </Text>
+              )}
             </View>
             <View className="flex-row items-baseline">
-              <Text className="text-3xl font-black text-slate-900">{profile.overallScore}</Text>
+              <Text className="text-3xl font-black text-slate-900">
+                {profile.isCalibrated ? profile.overallScore : '—'}
+              </Text>
               <Text className="text-xs font-bold text-slate-400 ml-0.5">/100</Text>
             </View>
           </View>
 
           {/* metrics */}
           <View className="space-y-2 mb-3">
-            <MetricRow label="Fluency" score={profile.fluencyScore} />
-            <MetricRow label="Clarity" score={profile.clarityScore} />
-            <MetricRow label="Pacing" score={profile.pacingScore} />
-            <MetricRow label="Expression" score={profile.expressionScore} />
+            <MetricRow label="Fluency" score={profile.fluencyScore} isCalibrated={profile.isCalibrated} />
+            <MetricRow label="Clarity" score={profile.clarityScore} isCalibrated={profile.isCalibrated} />
+            <MetricRow label="Pacing" score={profile.pacingScore} isCalibrated={profile.isCalibrated} />
+            <MetricRow label="Expression" score={profile.expressionScore} isCalibrated={profile.isCalibrated} />
           </View>
         </View>
 
@@ -173,7 +180,7 @@ export const JourneyScreen: React.FC<JourneyScreenProps> = ({ onBack }) => {
           </View>
         </View>
 
-        {/* personal records */}
+        {/* personal records (Option B: Meaningful Summaries) */}
         <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-5">
           <Text className="text-xs font-extrabold text-slate-400 tracking-wider uppercase mb-3">
             PERSONAL BESTS
@@ -181,25 +188,26 @@ export const JourneyScreen: React.FC<JourneyScreenProps> = ({ onBack }) => {
 
           <View className="flex-row gap-2">
             <View className="flex-1 p-3 bg-slate-50 rounded-2xl border border-slate-100">
-              <Text className="text-[10px] font-bold text-slate-400 uppercase">Fluency</Text>
-              <Text className="text-lg font-black text-slate-900 mt-0.5">
-                {profile.personalBests.highestFluency || '--'}
-              </Text>
-            </View>
-            <View className="flex-1 p-3 bg-slate-50 rounded-2xl border border-slate-100">
-              <Text className="text-[10px] font-bold text-slate-400 uppercase">Clarity</Text>
-              <Text className="text-lg font-black text-slate-900 mt-0.5">
-                {profile.personalBests.highestClarity || '--'}
-              </Text>
-            </View>
-            <View className="flex-1 p-3 bg-slate-50 rounded-2xl border border-slate-100">
               <Text className="text-[10px] font-bold text-slate-400 uppercase">Overall</Text>
-              <Text className="text-lg font-black text-slate-900 mt-0.5">
+              <Text className="text-base font-black text-slate-900 mt-1">
                 {profile.personalBests.highestOverall || '--'}
               </Text>
             </View>
+            <View className="flex-1 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+              <Text className="text-[10px] font-bold text-slate-400 uppercase">Top Skill</Text>
+              <Text className="text-xs font-black text-slate-900 mt-1.5" numberOfLines={1}>
+                {profile.topSkill ? `${profile.topSkill.name} ${profile.topSkill.score}` : '--'}
+              </Text>
+            </View>
+            <View className="flex-1 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+              <Text className="text-[10px] font-bold text-slate-400 uppercase">Best Growth</Text>
+              <Text className="text-xs font-black text-emerald-700 mt-1.5" numberOfLines={1}>
+                {profile.bestHistoricalGrowth
+                  ? `${profile.bestHistoricalGrowth.name} +${profile.bestHistoricalGrowth.delta}`
+                  : '--'}
+              </Text>
+            </View>
           </View>
-
         </View>
 
         {/* reset */}
@@ -220,19 +228,22 @@ export const JourneyScreen: React.FC<JourneyScreenProps> = ({ onBack }) => {
 interface MetricRowProps {
   label: string;
   score: number;
+  isCalibrated?: boolean;
 }
 
-const MetricRow: React.FC<MetricRowProps> = ({ label, score }) => {
+const MetricRow: React.FC<MetricRowProps> = ({ label, score, isCalibrated = true }) => {
   return (
     <View className="flex-row items-center justify-between my-1">
       <Text className="text-xs font-bold text-slate-600 w-24">{label}</Text>
       <View className="flex-1 h-2 bg-slate-100 rounded-full mx-3 overflow-hidden">
         <View
           className="h-full bg-slate-800 rounded-full"
-          style={{ width: `${Math.min(100, Math.max(10, score))}%` }}
+          style={{ width: isCalibrated ? `${Math.min(100, Math.max(10, score))}%` : '0%' }}
         />
       </View>
-      <Text className="text-xs font-bold text-slate-800 w-8 text-right">{score}</Text>
+      <Text className="text-xs font-bold text-slate-800 w-8 text-right">
+        {isCalibrated ? score : '—'}
+      </Text>
     </View>
   );
 };

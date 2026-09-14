@@ -126,24 +126,24 @@ export const challengeStorage = {
 
     if (totalSessions === 0) {
       return {
-        overallScore: 50,
-        clarityScore: 50,
-        fluencyScore: 50,
-        pacingScore: 50,
-        expressionScore: 50,
-        growthSummary: '↗ Complete session to calibrate',
+        isCalibrated: false,
+        overallScore: 0,
+        clarityScore: 0,
+        fluencyScore: 0,
+        pacingScore: 0,
+        expressionScore: 0,
+        growthSummary: 'Complete session to calibrate',
         biggestImprovement: { name: 'Pacing', delta: 'Initial' },
         totalSessions: 0,
         sessionsThisWeek: 0,
         weekDots: [false, false, false, false, false, false, false],
         currentFocus: {
-          title: 'Initial Calibration',
-          targetText: 'First session baseline calibration',
+          title: 'Baseline Calibration',
+          targetText: 'Establish starting voice profile',
         },
         personalBests,
       };
     }
-
 
     const recent = history.slice(0, 5);
     const avgOverall = Math.round(recent.reduce((acc, h) => acc + h.overallScore, 0) / recent.length);
@@ -188,6 +188,40 @@ export const challengeStorage = {
       }
     }
 
+    // Top Skill across all history
+    let topSkillName = 'Clarity';
+    let topSkillScore = 0;
+    for (const h of history) {
+      const clarity = Math.round((h.accuracyScore + h.pronunciationScore) / 2);
+      if (clarity > topSkillScore) { topSkillScore = clarity; topSkillName = 'Clarity'; }
+      if (h.fluencyScore > topSkillScore) { topSkillScore = h.fluencyScore; topSkillName = 'Fluency'; }
+      if (h.pacingScore > topSkillScore) { topSkillScore = h.pacingScore; topSkillName = 'Pacing'; }
+      const expr = h.expressionScore || 70;
+      if (expr > topSkillScore) { topSkillScore = expr; topSkillName = 'Expression'; }
+    }
+    const topSkill = topSkillScore > 0 ? { name: topSkillName, score: topSkillScore } : undefined;
+
+    // Largest positive session-to-session delta across all historical sessions
+    const chronological = [...history].reverse();
+    let bestGrowthDelta = 0;
+    let bestGrowthSkill = '';
+    for (let i = 0; i < chronological.length - 1; i++) {
+      const prev = chronological[i];
+      const curr = chronological[i + 1];
+      const prevClarity = Math.round((prev.accuracyScore + prev.pronunciationScore) / 2);
+      const currClarity = Math.round((curr.accuracyScore + curr.pronunciationScore) / 2);
+      const dClarity = currClarity - prevClarity;
+      const dFluency = curr.fluencyScore - prev.fluencyScore;
+      const dPacing = curr.pacingScore - prev.pacingScore;
+      const dExpression = (curr.expressionScore || 70) - (prev.expressionScore || 70);
+
+      if (dFluency > bestGrowthDelta) { bestGrowthDelta = dFluency; bestGrowthSkill = 'Fluency'; }
+      if (dClarity > bestGrowthDelta) { bestGrowthDelta = dClarity; bestGrowthSkill = 'Clarity'; }
+      if (dPacing > bestGrowthDelta) { bestGrowthDelta = dPacing; bestGrowthSkill = 'Pacing'; }
+      if (dExpression > bestGrowthDelta) { bestGrowthDelta = dExpression; bestGrowthSkill = 'Expression'; }
+    }
+    const bestHistoricalGrowth = bestGrowthDelta > 0 ? { name: bestGrowthSkill, delta: bestGrowthDelta } : undefined;
+
     let focusTitle = 'Natural Pacing';
     let targetText = `Natural pacing ${avgPacing} → 80`;
     if (avgPacing >= 80 && avgExpression < 80) {
@@ -199,6 +233,7 @@ export const challengeStorage = {
     }
 
     return {
+      isCalibrated: true,
       overallScore: avgOverall,
       clarityScore: avgClarity,
       fluencyScore: avgFluency,
@@ -206,6 +241,8 @@ export const challengeStorage = {
       expressionScore: avgExpression,
       growthSummary,
       biggestImprovement,
+      topSkill,
+      bestHistoricalGrowth,
       totalSessions,
       sessionsThisWeek,
       weekDots,

@@ -95,6 +95,23 @@ function generateLocalFallbackAnalysis(
   };
 }
 
+function normalizeWordLimit(text: string | undefined, maxWords: number, fallback: string): string {
+  if (!text || typeof text !== 'string') return fallback;
+  const words = text.trim().replace(/\s+/g, ' ').split(' ');
+  if (words.length <= maxWords) return text.trim();
+  return words.slice(0, maxWords).join(' ') + '...';
+}
+
+function normalizeFeedbackSentences(text: string | undefined, fallback: string): string {
+  if (!text || typeof text !== 'string') return fallback;
+  const clean = text.trim().replace(/\s+/g, ' ');
+  const sentences = clean.match(/[^.!?]+[.!?]+/g);
+  if (sentences && sentences.length > 2) {
+    return sentences.slice(0, 2).join(' ').trim();
+  }
+  return normalizeWordLimit(clean, 35, fallback);
+}
+
 export const analysisService = {
   async analyzeRecording(
     audioPath: string,
@@ -120,6 +137,11 @@ Evaluate speech across:
 3. Pacing: Words-per-minute tempo, appropriate pauses at thought groups.
 4. Expression: Conversational tone, vocal confidence, intonation.
 
+BREVITY RULES (STRICT):
+- "headline": Max 12-15 words. High-level summary of how the speaker sounds.
+- "tomorrowFocus": Max 15-18 words. Exactly ONE concrete, actionable speaking tip for tomorrow's session.
+- "feedback": Max 2 short conversational sentences explaining why (no essays, plain text).
+
 Return a STRICT, compact JSON response (no markdown backticks, pure JSON):
 {
   "overallScore": number (0-100),
@@ -128,9 +150,9 @@ Return a STRICT, compact JSON response (no markdown backticks, pure JSON):
   "fluencyScore": number (0-100),
   "pacingScore": number (0-100),
   "expressionScore": number (0-100),
-  "headline": string (e.g. "Clear pronunciation, but bring more life to your voice."),
-  "tomorrowFocus": string (e.g. "Vary your pitch and intonation. Try this in your next session."),
-  "feedback": string,
+  "headline": string (max 15 words),
+  "tomorrowFocus": string (max 18 words),
+  "feedback": string (max 2 short sentences),
   "strengths": [string, string],
   "improvements": [string, string],
   "wpm": number
@@ -183,14 +205,17 @@ Return a STRICT, compact JSON response (no markdown backticks, pure JSON):
                 accuracyScore: Math.round(parsed.accuracyScore ?? parsed.overallScore),
                 fluencyScore: Math.round(parsed.fluencyScore ?? parsed.overallScore),
                 pacingScore: Math.round(parsed.pacingScore ?? parsed.overallScore),
-                expressionScore: Math.round(parsed.expressionScore ?? parsed.fluencyScore ?? parsed.overallScore),
-                headline: parsed.headline || 'Clear pronunciation, but bring more life to your voice.',
-                tomorrowFocus: parsed.tomorrowFocus || 'Vary your pitch and intonation. Try this in your next session.',
+                expressionScore: Math.round(parsed.expressionScore ?? parsed.overallScore),
+                headline: normalizeWordLimit(parsed.headline, 16, 'Clear articulation with steady cadence.'),
+                tomorrowFocus: normalizeWordLimit(parsed.tomorrowFocus, 18, 'Pause briefly after main clauses to avoid rushing.'),
+                feedback: normalizeFeedbackSentences(
+                  parsed.feedback,
+                  'Your articulation is clear and steady. Emphasize key verbs to sound even more conversational.'
+                ),
+                strengths: parsed.strengths || ['Good voice projection'],
+                improvements: parsed.improvements || ['Natural thought pauses'],
                 wpm: calcWpm,
                 speakingSeconds: durationSec,
-                feedback: parsed.feedback || 'Great job on today\'s speaking session!',
-                strengths: Array.isArray(parsed.strengths) ? parsed.strengths : ['Good voice projection', 'Clear articulation'],
-                improvements: Array.isArray(parsed.improvements) ? parsed.improvements : ['Keep practicing natural rhythm and pacing'],
               };
             }
           }
