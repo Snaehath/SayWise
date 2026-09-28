@@ -3,11 +3,12 @@ import { ActivityIndicator, Animated, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
+import { Mascot } from '../components/Mascot';
+import { WaveformDisplay } from '../components/WaveformDisplay';
 import { analysisService } from '../services/analysisService';
 import { Challenge } from '../types/challenge';
 import { AnalysisResult } from '../types/result';
 
-// types
 interface AnalysisScreenProps {
   challenge: Challenge;
   audioPath: string;
@@ -31,25 +32,20 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
   onAnalysisSuccess,
   onCancel,
 }) => {
-  // hooks
   const insets = useSafeAreaInsets();
 
-  // state
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [hasError, setHasError] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
 
-  // refs
   const pulseRingAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
-  const iconBounceAnim = useRef(new Animated.Value(0)).current;
 
-  // effects
   useEffect(() => {
     const pulseLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseRingAnim, {
-          toValue: 1.25,
+          toValue: 1.15,
           duration: 1100,
           useNativeDriver: true,
         }),
@@ -62,25 +58,8 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
     );
     pulseLoop.start();
 
-    const bounceLoop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(iconBounceAnim, {
-          toValue: -8,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(iconBounceAnim, {
-          toValue: 0,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    bounceLoop.start();
-
     return () => {
       pulseLoop.stop();
-      bounceLoop.stop();
     };
   }, []);
 
@@ -133,66 +112,61 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
     };
   }, [isRetrying]);
 
-  // handlers
   const handleRetry = () => {
     setIsRetrying((prev) => !prev);
   };
 
-  // render
   return (
     <View
       className="flex-1 bg-slate-50 justify-between items-center px-6"
-      style={{ paddingTop: insets.top + 40, paddingBottom: insets.bottom + 24 }}
+      style={{ paddingTop: insets.top + 30, paddingBottom: insets.bottom + 24 }}
     >
       <View />
 
-      {/* center card */}
+      {/* Center card */}
       <View className="items-center justify-center w-full max-w-sm">
-        {/* animated orb */}
-        <View className="items-center justify-center mb-8 relative w-36 h-36">
+        {/* Mascot with subtle pulsing background */}
+        <View className="items-center justify-center mb-6 relative w-36 h-36">
           <Animated.View
             className="absolute w-36 h-36 rounded-full bg-indigo-100/60"
             style={[{ transform: [{ scale: pulseRingAnim }] }]}
           />
-          <View className="w-28 h-28 rounded-full bg-indigo-50 items-center justify-center border-2 border-indigo-200 shadow-md shadow-indigo-500/15">
+          <View className="w-28 h-28 rounded-full bg-indigo-50 items-center justify-center border border-indigo-200 shadow-sm">
             {hasError ? (
               <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
             ) : (
-              <Animated.View style={{ transform: [{ translateY: iconBounceAnim }] }}>
-                <Ionicons name="sparkles" size={44} color="#4F46E5" />
-              </Animated.View>
+              <Mascot size={80} variant="listening" />
             )}
           </View>
         </View>
 
-        {/* status title */}
+        {/* Status title */}
         <Text className="text-2xl font-black text-slate-900 text-center mb-2">
           {hasError ? 'Analysis Paused' : 'Evaluating Speech'}
         </Text>
 
-        {/* rotating prompt */}
+        {/* Rotating prompt message */}
         {hasError ? (
           <Text className="text-sm text-slate-500 text-center leading-5 px-4 mb-6">
             Unable to connect to the speech evaluation service. Please check your network or try again.
           </Text>
         ) : (
-          <Animated.View style={[{ opacity: fadeAnim }]} className="h-12 items-center justify-center">
+          <Animated.View style={[{ opacity: fadeAnim }]} className="h-10 items-center justify-center">
             <Text className="text-sm font-semibold text-indigo-600 text-center px-4">
               {ROTATING_MESSAGES[currentMessageIndex]}
             </Text>
           </Animated.View>
         )}
 
-        {/* loading indicator */}
+        {/* Mini waveform while evaluating */}
         {!hasError && (
-          <View className="mt-4">
-            <ActivityIndicator size="small" color="#4F46E5" />
+          <View className="mt-4 items-center">
+            <WaveformDisplay animated={true} height={20} barCount={13} />
           </View>
         )}
       </View>
 
-
-      {/* action footer */}
+      {/* Action footer */}
       <View className="w-full">
         {hasError ? (
           <View className="space-y-3 w-full">

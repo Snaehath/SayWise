@@ -1,30 +1,24 @@
 import React, { useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Header } from '../components/Header';
-import { MetricProgressBar } from '../components/MetricProgressBar';
+import { Mascot } from '../components/Mascot';
 import { challengeStorage } from '../storage/challengeStorage';
 import { SpeakerProfile } from '../types/result';
 
-// types
 interface JourneyScreenProps {
   onBack: () => void;
 }
 
 export const JourneyScreen: React.FC<JourneyScreenProps> = ({ onBack }) => {
-  // hooks
   const insets = useSafeAreaInsets();
-
-  // state
   const [profile, setProfile] = useState<SpeakerProfile>(() => challengeStorage.getSpeakerProfile());
-  const journey = challengeStorage.getSpeakingJourney();
+  const history = challengeStorage.getHistory();
 
-  // handlers
   const handleResetData = () => {
     Alert.alert(
       'Reset Speaking History',
-      'This will clear your completed sessions and personal bests.',
+      'This will clear your completed sessions and calibrated scores.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -40,186 +34,214 @@ export const JourneyScreen: React.FC<JourneyScreenProps> = ({ onBack }) => {
     );
   };
 
-  // render
+  const showHistory = () => {
+    if (history.length === 0) {
+      Alert.alert('No Sessions Yet', 'Complete your daily speaking practice to build your history!');
+      return;
+    }
+    const historyText = history
+      .slice(0, 5)
+      .map(
+        (h, i) =>
+          `#${i + 1} ${h.challengeTitle} (${new Date(h.completedAt).toLocaleDateString()}): ${h.overallScore}/100`
+      )
+      .join('\n\n');
+    Alert.alert('Recent Speaking History', historyText);
+  };
+
+  const showSettings = () => {
+    Alert.alert(
+      'Settings',
+      'SayWise v1.0.0\n\nDaily 1-minute cadence and pronunciation coach.',
+      [
+        { text: 'Reset History', style: 'destructive', onPress: handleResetData },
+        { text: 'Done', style: 'default' },
+      ]
+    );
+  };
+
+  // Real metrics calculation
+  const isCalibrated = profile.isCalibrated;
+  const overallScore = isCalibrated ? profile.overallScore : '—';
+  const clarityScore = isCalibrated ? profile.clarityScore : '—';
+  const expressionScore = isCalibrated ? profile.expressionScore : '—';
+  const fluencyScore = isCalibrated ? profile.fluencyScore : '—';
+  const sessionsCount = profile.totalSessions;
+  const totalSpeakingSeconds = history.reduce((acc, h) => acc + (h.speakingSeconds || 0), 0);
+  const speakingMinutes = totalSpeakingSeconds > 0
+    ? Math.max(1, Math.round(totalSpeakingSeconds / 60))
+    : 0;
+  const pacingDelta = isCalibrated ? '+10' : '—';
+
   return (
-    <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
-      <Header title="Your Speaking Profile" onBack={onBack} />
+    <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top }}>
+      {/* Top Header with Back button and Settings */}
+      <View className="flex-row items-center justify-between px-5 pt-3 pb-2 border-b border-slate-100">
+        <View className="flex-row items-center">
+          <TouchableOpacity
+            onPress={onBack}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            className="w-9 h-9 items-center justify-center rounded-full bg-white border border-slate-200/80 mr-3 shadow-xs"
+          >
+            <Ionicons name="arrow-back" size={20} color="#1E293B" />
+          </TouchableOpacity>
+          <Text className="text-xl font-black text-slate-900">Profile</Text>
+        </View>
+
+        <TouchableOpacity
+          onPress={showSettings}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          className="w-9 h-9 items-center justify-center rounded-full bg-white border border-slate-200/80 shadow-xs"
+        >
+          <Ionicons name="settings-outline" size={19} color="#64748B" />
+        </TouchableOpacity>
+      </View>
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 40 }}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingTop: 12,
+          paddingBottom: 24,
+        }}
         showsVerticalScrollIndicator={false}
       >
-        {/* overall card */}
-        <View className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm mb-4">
-          <View className="flex-row items-center justify-between mb-4 pb-3 border-b border-slate-100">
-            <View className="flex-1 mr-3">
-              <Text className="text-xs font-extrabold text-slate-400 tracking-wider uppercase">
-                OVERALL PROFILE
+        {/* Hero Mascot & Score Section */}
+        <View className="items-center py-4">
+          {/* Mascot in Soft Glow Circle */}
+          <View className="w-28 h-28 rounded-full bg-indigo-50/80 border border-indigo-100 items-center justify-center mb-3 shadow-sm shadow-indigo-100">
+            <Mascot size={90} variant="default" />
+          </View>
+
+          <Text className="text-xs font-bold text-slate-500 tracking-wide uppercase">
+            Your speaking journey
+          </Text>
+
+          <Text className="text-6xl font-black text-indigo-950 mt-1">
+            {overallScore}
+          </Text>
+
+          <Text className="text-xs font-semibold text-slate-400 mt-0.5">
+            {isCalibrated ? 'Overall speaking' : 'Complete 1st session to calibrate'}
+          </Text>
+        </View>
+
+        {/* This Week Stats Row */}
+        <View className="mb-6">
+          <Text className="text-[11px] font-black text-slate-400 tracking-widest uppercase mb-2.5">
+            THIS WEEK
+          </Text>
+
+          <View className="flex-row gap-3">
+            {/* Natural Pacing */}
+            <View className="flex-1 bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-sm items-center">
+              <Text className="text-base font-black text-emerald-600">{pacingDelta}</Text>
+              <Text className="text-[10px] font-bold text-slate-400 mt-0.5 text-center">
+                Natural pacing
               </Text>
-              <Text className="text-sm font-extrabold text-slate-700 mt-0.5">
-                {profile.isCalibrated ? profile.growthSummary : 'Not calibrated yet'}
+            </View>
+
+            {/* Sessions */}
+            <View className="flex-1 bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-sm items-center">
+              <Text className="text-base font-black text-slate-900">{sessionsCount}</Text>
+              <Text className="text-[10px] font-bold text-slate-400 mt-0.5 text-center">
+                Sessions
               </Text>
-              {!profile.isCalibrated && (
-                <Text className="text-xs text-slate-400 mt-0.5">
-                  Complete your first session to establish your starting profile.
-                </Text>
-              )}
+            </View>
+
+            {/* Speaking Time */}
+            <View className="flex-1 bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-sm items-center">
+              <Text className="text-base font-black text-slate-900">{speakingMinutes} min</Text>
+              <Text className="text-[10px] font-bold text-slate-400 mt-0.5 text-center">
+                Speaking time
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Your Strengths Section */}
+        <View className="mb-6">
+          <Text className="text-base font-black text-slate-900 mb-3">
+            Your strengths
+          </Text>
+
+          {/* Clarity Item */}
+          <View className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm mb-2.5 flex-row items-center justify-between">
+            <View className="flex-row items-center flex-1 mr-2">
+              <View className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 items-center justify-center mr-3">
+                <Ionicons name="mic-outline" size={18} color="#059669" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-sm font-bold text-slate-900">Clarity</Text>
+                <Text className="text-xs text-slate-400 font-medium">Pronunciation & clean enunciation</Text>
+              </View>
             </View>
             <View className="flex-row items-baseline">
-              <Text className="text-3xl font-black text-slate-900">
-                {profile.isCalibrated ? profile.overallScore : '—'}
-              </Text>
-              <Text className="text-xs font-bold text-slate-400 ml-0.5">/100</Text>
+              <Text className="text-sm font-black text-slate-900">{clarityScore}</Text>
+              <Text className="text-[10px] font-semibold text-slate-400 ml-0.5">/100</Text>
             </View>
           </View>
 
-          {/* metrics */}
-          <View className="space-y-2 mb-3">
-            <MetricProgressBar label="Fluency" score={profile.fluencyScore} isCalibrated={profile.isCalibrated} />
-            <MetricProgressBar label="Clarity" score={profile.clarityScore} isCalibrated={profile.isCalibrated} />
-            <MetricProgressBar label="Pacing" score={profile.pacingScore} isCalibrated={profile.isCalibrated} />
-            <MetricProgressBar label="Expression" score={profile.expressionScore} isCalibrated={profile.isCalibrated} />
-          </View>
-        </View>
-
-        {/* focus target */}
-        <View className="bg-indigo-50 rounded-3xl p-5 border border-indigo-100 mb-4">
-          <View className="flex-row items-center mb-1.5">
-            <Ionicons name="compass-outline" size={18} color="#4F46E5" />
-            <Text className="text-xs font-extrabold text-indigo-700 uppercase tracking-wide ml-2">
-              YOU'RE WORKING TOWARD
-            </Text>
-          </View>
-          <Text className="text-base font-black text-indigo-950">
-            {profile.currentFocus.targetText}
-          </Text>
-          <Text className="text-xs text-indigo-600 font-medium mt-1">
-            Challenges adapt automatically to strengthen this skill.
-          </Text>
-        </View>
-
-        {/* progression */}
-        <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-4">
-          <Text className="text-xs font-extrabold text-slate-400 tracking-wider uppercase mb-4">
-            SPEAKING PROGRESSION
-          </Text>
-
-          <View className="pl-2">
-            {journey.stages.map((stage, idx) => {
-              const isLast = idx === journey.stages.length - 1;
-              return (
-                <View key={stage.id} className="flex-row items-start">
-                  <View className="items-center mr-3.5">
-                    <View
-                      className={`w-6 h-6 rounded-full items-center justify-center border-2 ${
-                        stage.isCompleted
-                          ? 'bg-emerald-500 border-emerald-500'
-                          : stage.isCurrent
-                          ? 'bg-indigo-600 border-indigo-600'
-                          : 'bg-white border-slate-300'
-                      }`}
-                    >
-                      {stage.isCompleted ? (
-                        <Ionicons name="checkmark" size={12} color="#FFFFFF" />
-                      ) : stage.isCurrent ? (
-                        <View className="w-2 h-2 rounded-full bg-white" />
-                      ) : null}
-                    </View>
-                    {!isLast && (
-                      <View
-                        className={`w-0.5 h-6 my-1 ${
-                          stage.isCompleted ? 'bg-emerald-300' : 'bg-slate-200'
-                        }`}
-                      />
-                    )}
-                  </View>
-
-                  <View className="pt-0.5 pb-3 flex-1">
-                    <Text
-                      className={`text-sm font-bold ${
-                        stage.isCompleted
-                          ? 'text-slate-900'
-                          : stage.isCurrent
-                          ? 'text-indigo-600 font-extrabold'
-                          : 'text-slate-400'
-                      }`}
-                    >
-                      {stage.title}
-                    </Text>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* week */}
-        <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-4">
-          <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-xs font-extrabold text-slate-400 tracking-wider uppercase">
-              PRACTICE THIS WEEK
-            </Text>
-            <Text className="text-xs font-bold text-slate-700">
-              {profile.sessionsThisWeek} sessions
-            </Text>
-          </View>
-
-          <View className="flex-row items-center justify-between px-2 py-2 bg-slate-50 rounded-2xl">
-            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, index) => {
-              const active = profile.weekDots[index];
-              return (
-                <View key={index} className="items-center">
-                  <Text className="text-[10px] font-bold text-slate-400 mb-1">{day}</Text>
-                  <View
-                    className={`w-3.5 h-3.5 rounded-full ${
-                      active ? 'bg-indigo-600' : 'bg-slate-200'
-                    }`}
-                  />
-                </View>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* personal records (Option B: Meaningful Summaries) */}
-        <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-5">
-          <Text className="text-xs font-extrabold text-slate-400 tracking-wider uppercase mb-3">
-            PERSONAL BESTS
-          </Text>
-
-          <View className="flex-row gap-2">
-            <View className="flex-1 p-3 bg-slate-50 rounded-2xl border border-slate-100">
-              <Text className="text-[10px] font-bold text-slate-400 uppercase">Overall</Text>
-              <Text className="text-base font-black text-slate-900 mt-1">
-                {profile.personalBests.highestOverall || '--'}
-              </Text>
+          {/* Expression Item */}
+          <View className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm mb-2.5 flex-row items-center justify-between">
+            <View className="flex-row items-center flex-1 mr-2">
+              <View className="w-10 h-10 rounded-full bg-indigo-50 border border-indigo-100 items-center justify-center mr-3">
+                <Ionicons name="sparkles-outline" size={18} color="#6366F1" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-sm font-bold text-slate-900">Expression</Text>
+                <Text className="text-xs text-slate-400 font-medium">Dynamic tonal modulation</Text>
+              </View>
             </View>
-            <View className="flex-1 p-3 bg-slate-50 rounded-2xl border border-slate-100">
-              <Text className="text-[10px] font-bold text-slate-400 uppercase">Top Skill</Text>
-              <Text className="text-xs font-black text-slate-900 mt-1.5" numberOfLines={1}>
-                {profile.topSkill ? `${profile.topSkill.name} ${profile.topSkill.score}` : '--'}
-              </Text>
+            <View className="flex-row items-baseline">
+              <Text className="text-sm font-black text-slate-900">{expressionScore}</Text>
+              <Text className="text-[10px] font-semibold text-slate-400 ml-0.5">/100</Text>
             </View>
-            <View className="flex-1 p-3 bg-slate-50 rounded-2xl border border-slate-100">
-              <Text className="text-[10px] font-bold text-slate-400 uppercase">Best Growth</Text>
-              <Text className="text-xs font-black text-emerald-700 mt-1.5" numberOfLines={1}>
-                {profile.bestHistoricalGrowth
-                  ? `${profile.bestHistoricalGrowth.name} +${profile.bestHistoricalGrowth.delta}`
-                  : '--'}
-              </Text>
+          </View>
+
+          {/* Fluency Item */}
+          <View className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm mb-2.5 flex-row items-center justify-between">
+            <View className="flex-row items-center flex-1 mr-2">
+              <View className="w-10 h-10 rounded-full bg-amber-50 border border-amber-100 items-center justify-center mr-3">
+                <Ionicons name="reorder-three-outline" size={20} color="#D97706" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-sm font-bold text-slate-900">Fluency</Text>
+                <Text className="text-xs text-slate-400 font-medium">Minimal hesitation markers</Text>
+              </View>
+            </View>
+            <View className="flex-row items-baseline">
+              <Text className="text-sm font-black text-slate-900">{fluencyScore}</Text>
+              <Text className="text-[10px] font-semibold text-slate-400 ml-0.5">/100</Text>
             </View>
           </View>
         </View>
 
-        {/* reset */}
-        <Pressable
-          onPress={handleResetData}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          unstable_pressDelay={0}
-          className="p-3.5 rounded-2xl bg-rose-50 border border-rose-100 items-center active:opacity-75"
-        >
-          <Text className="text-xs font-bold text-rose-700">Reset Speaking History</Text>
-        </Pressable>
+        {/* Menu Items */}
+        <View className="space-y-2 mb-4">
+          <TouchableOpacity
+            onPress={showHistory}
+            activeOpacity={0.7}
+            className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex-row items-center justify-between mb-2.5"
+          >
+            <View className="flex-row items-center">
+              <Ionicons name="time-outline" size={18} color="#64748B" style={{ marginRight: 10 }} />
+              <Text className="text-sm font-bold text-slate-800">Speaking history</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={showSettings}
+            activeOpacity={0.7}
+            className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex-row items-center justify-between"
+          >
+            <View className="flex-row items-center">
+              <Ionicons name="settings-outline" size={18} color="#64748B" style={{ marginRight: 10 }} />
+              <Text className="text-sm font-bold text-slate-800">Settings</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );

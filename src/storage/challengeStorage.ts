@@ -1,10 +1,9 @@
 import { Difficulty } from '../types/challenge';
-import { ChallengeResult, JourneyStage, PersonalBests, SpeakerProfile } from '../types/result';
+import { ChallengeResult, PersonalBests, SpeakerProfile } from '../types/result';
 
 // keys
 const KEYS = {
   SELECTED_DIFFICULTY: 'saywise.selected_difficulty',
-  TODAY_CHALLENGE_ID: 'saywise.today_challenge_id',
   LAST_COMPLETED_DATE: 'saywise.last_completed_date',
   TODAY_RESULT: 'saywise.today_result',
   COMPLETION_HISTORY: 'saywise.completion_history',
@@ -115,10 +114,6 @@ export function getTodayDateString(): string {
 }
 
 export const challengeStorage = {
-  isBaselineSession(): boolean {
-    return challengeStorage.getHistory().length === 0;
-  },
-
   getSpeakerProfile(): SpeakerProfile {
     const history = challengeStorage.getHistory();
     const totalSessions = history.length;
@@ -254,25 +249,6 @@ export const challengeStorage = {
     };
   },
 
-  getSpeakingJourney(): { stages: JourneyStage[]; currentMilestoneText: string } {
-    const history = challengeStorage.getHistory();
-    const sessions = history.length;
-    const profile = challengeStorage.getSpeakerProfile();
-
-    const stages: JourneyStage[] = [
-      { id: '1', title: 'Started', isCompleted: sessions >= 1, isCurrent: sessions === 0 },
-      { id: '2', title: 'Finding your voice', isCompleted: sessions >= 3, isCurrent: sessions >= 1 && sessions < 3 },
-      { id: '3', title: 'Speaking more naturally', isCompleted: sessions >= 7, isCurrent: sessions >= 3 && sessions < 7 },
-      { id: '4', title: 'Expressing ideas clearly', isCompleted: sessions >= 15, isCurrent: sessions >= 7 && sessions < 15 },
-      { id: '5', title: 'Confident speaker', isCompleted: sessions >= 30, isCurrent: sessions >= 15 },
-    ];
-
-    return {
-      stages,
-      currentMilestoneText: profile.currentFocus.targetText,
-    };
-  },
-
   getPersonalBests(): PersonalBests {
     const raw = storage.getString(KEYS.PERSONAL_BESTS);
     if (raw) {
@@ -327,17 +303,6 @@ export const challengeStorage = {
     return alert;
   },
 
-  getRecentTopics(): string[] {
-    const history = challengeStorage.getHistory();
-    const topics: string[] = [];
-    history.slice(0, 10).forEach((h) => {
-      if (h.challengeTitle && !topics.includes(h.challengeTitle)) {
-        topics.push(h.challengeTitle);
-      }
-    });
-    return topics;
-  },
-
   getSelectedDifficulty(): Difficulty {
     const saved = storage.getString(KEYS.SELECTED_DIFFICULTY);
     if (saved === 'advanced' || saved === 'intermediate' || saved === 'beginner') {
@@ -349,18 +314,6 @@ export const challengeStorage = {
 
   setSelectedDifficulty(difficulty: Difficulty): void {
     storage.set(KEYS.SELECTED_DIFFICULTY, difficulty);
-  },
-
-  getTodayChallengeId(): string | null {
-    return storage.getString(KEYS.TODAY_CHALLENGE_ID) ?? null;
-  },
-
-  setTodayChallengeId(id: string): void {
-    storage.set(KEYS.TODAY_CHALLENGE_ID, id);
-  },
-
-  getLastCompletedDate(): string | null {
-    return storage.getString(KEYS.LAST_COMPLETED_DATE) ?? null;
   },
 
   isCompletedToday(): boolean {

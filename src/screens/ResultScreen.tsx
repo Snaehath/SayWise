@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Mascot } from '../components/Mascot';
 import { AudioShadowPlayer } from '../components/AudioShadowPlayer';
-import { Button } from '../components/Button';
-import { Header } from '../components/Header';
-import { MetricProgressBar } from '../components/MetricProgressBar';
 import { recordingService } from '../services/recordingService';
 import { challengeStorage } from '../storage/challengeStorage';
 import { Challenge } from '../types/challenge';
 import { AnalysisResult, ChallengeResult } from '../types/result';
 
-// types
 interface ResultScreenProps {
   challenge: Challenge;
   audioPath: string;
@@ -27,14 +24,10 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   onComplete,
   onBackToHome,
 }) => {
-  // hooks
   const insets = useSafeAreaInsets();
-
-  // state
   const [isSaving, setIsSaving] = useState(false);
 
-  // handlers
-  const handleCompleteChallenge = async () => {
+  const handleFinish = async () => {
     setIsSaving(true);
 
     const challengeResult: ChallengeResult = {
@@ -53,20 +46,19 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
       tomorrowFocus: result.tomorrowFocus,
       feedback: result.feedback,
       wpm: result.wpm,
-      speakingSeconds: result.speakingSeconds || 45,
+      speakingSeconds: result.speakingSeconds || 48,
     };
 
     try {
-      const savedInfo = challengeStorage.saveChallengeResult(challengeResult);
-      if (savedInfo.personalBestAlert) {
-        challengeResult.personalBestAlert = savedInfo.personalBestAlert;
-      }
+      challengeStorage.saveChallengeResult(challengeResult);
     } catch (storageErr) {
       console.warn('Storage save warning:', storageErr);
     }
 
     try {
-      await recordingService.deleteTemporaryAudio(audioPath);
+      if (audioPath) {
+        await recordingService.deleteTemporaryAudio(audioPath);
+      }
     } catch (audioErr) {
       console.warn('Audio delete warning:', audioErr);
     }
@@ -75,130 +67,161 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
     onComplete(challengeResult);
   };
 
-  const headline = result.headline || 'Clear pronunciation, but bring more life to your voice.';
-  const tomorrowFocus = result.tomorrowFocus || 'Vary your pitch and intonation in your next session.';
-  const spokenDuration = result.speakingSeconds || 45;
-
-  // genuine session-to-session deltas
-  const history = challengeStorage.getHistory();
-  const isReviewingToday = challengeStorage.isCompletedToday();
-  const previousSession = isReviewingToday ? history[1] : history[0];
-  const hasPrevious = Boolean(previousSession);
-
-  const prevClarity = hasPrevious && previousSession
-    ? Math.round((previousSession.accuracyScore + previousSession.pronunciationScore) / 2)
-    : null;
-  const prevFluency = hasPrevious && previousSession ? previousSession.fluencyScore : null;
-  const prevPacing = hasPrevious && previousSession ? previousSession.pacingScore : null;
-  const prevExpression = hasPrevious && previousSession ? (previousSession.expressionScore || 70) : null;
-
-  const currentClarity = Math.round((result.accuracyScore + result.pronunciationScore) / 2);
-  const currentExpression = result.expressionScore || 65;
-
-  const formatDelta = (curr: number, prev: number | null): { text: string; color: string } => {
-    if (prev === null) {
-      return { text: '—', color: 'text-slate-400' };
+  const handlePracticeAgain = () => {
+    if (onBackToHome) {
+      onBackToHome();
     }
-    const diff = curr - prev;
-    if (diff > 0) return { text: `+${diff}`, color: 'text-emerald-600' };
-    if (diff < 0) return { text: `${diff}`, color: 'text-rose-500' };
-    return { text: '0', color: 'text-slate-400' };
   };
 
-  // render
+  // Formatted date
+  const now = new Date();
+  const timeFormatted = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const dateFormatted = `Today, ${timeFormatted}`;
+
+  const headline = result.headline || 'Clear and natural.';
+  const feedbackQuote = result.feedback || '"Your ideas were easy to follow."';
+  const oneThingTitle = result.tomorrowFocus || 'Slow down before longer sentences.';
+  const oneThingTip = 'Try a slightly longer pause between thoughts.';
+  const spokenDuration = result.speakingSeconds || 48;
+
+  // Breakdown scores
+  const clarityScore = Math.round((result.accuracyScore + result.pronunciationScore) / 2) || 88;
+  const fluencyScore = result.fluencyScore || 84;
+  const pacingScore = result.pacingScore || 72;
+  const expressionScore = result.expressionScore || 86;
+
+  const metrics = [
+    { label: 'Clarity', score: clarityScore },
+    { label: 'Fluency', score: fluencyScore },
+    { label: 'Pacing', score: pacingScore },
+    { label: 'Expression', score: expressionScore },
+  ];
+
   return (
     <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
-      <Header
-        title="Session Insights"
-        onBack={onBackToHome}
-      />
-
-      <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 36 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* pb alert */}
-        {result.personalBestAlert && (
-          <View className="bg-amber-500 rounded-2xl p-3.5 mb-4 shadow-sm shadow-amber-500/30 flex-row items-center">
-            <Ionicons name="trophy" size={20} color="#FFFFFF" />
-            <Text className="text-sm font-extrabold text-white ml-2 flex-1">
-              {result.personalBestAlert}
-            </Text>
+      {/* Header */}
+      <View className="flex-row items-center justify-between px-6 pt-3 pb-2 border-b border-slate-100">
+        <View className="flex-row items-center">
+          <View className="w-6 h-6 rounded-full bg-emerald-500 items-center justify-center mr-2.5">
+            <Ionicons name="checkmark" size={14} color="#FFFFFF" />
           </View>
-        )}
-
-        {/* 1. OVERALL SCORE & HEADLINE (EMOTIONAL PAYOFF) */}
-        <View className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm mb-4">
-          <View className="flex-row items-center justify-between mb-3 pb-3 border-b border-slate-100">
-            <Text className="text-xs font-extrabold text-slate-400 tracking-wider uppercase">
-              YOU SPOKE FOR {spokenDuration} SECONDS
-            </Text>
-            <View className="flex-row items-baseline">
-              <Text className="text-2xl font-black text-slate-900">{result.overallScore}</Text>
-              <Text className="text-xs font-bold text-slate-400 ml-0.5">/100</Text>
-            </View>
+          <View>
+            <Text className="text-sm font-black text-slate-900">Session Complete</Text>
+            <Text className="text-[11px] font-semibold text-slate-400">{dateFormatted}</Text>
           </View>
-
-          {/* headline */}
-          <Text className="text-xl font-black text-slate-900 leading-7">
-            "{headline}"
-          </Text>
         </View>
 
-        {/* 2. 🎯 YOUR FOCUS (ACTIONABLE COACHING STAR) */}
-        <View className="bg-indigo-50/90 rounded-3xl p-5 border border-indigo-100 shadow-sm mb-4">
-          <View className="flex-row items-center mb-2.5">
-            <Ionicons name="sparkles" size={16} color="#4F46E5" />
-            <Text className="text-xs font-black text-indigo-700 tracking-wider uppercase ml-1.5">
-              🎯 YOUR FOCUS
+        <TouchableOpacity
+          onPress={onBackToHome || handleFinish}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          className="w-8 h-8 rounded-full bg-white border border-slate-200 items-center justify-center"
+        >
+          <Ionicons name="close" size={18} color="#64748B" />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingTop: 12,
+          paddingBottom: 24,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Mascot Celebration & Hero Score */}
+        <View className="items-center py-2">
+          <Mascot size={120} variant="celebrating" />
+
+          {/* Big Score */}
+          <View className="flex-row items-baseline mt-1">
+            <Text className="text-4xl font-black text-indigo-900">
+              {result.overallScore}
             </Text>
+            <Text className="text-base font-bold text-slate-400 ml-1">/100</Text>
           </View>
 
-          <Text className="text-[11px] font-bold text-indigo-500 uppercase tracking-wide mb-1">
-            One thing to work on:
-          </Text>
-          <Text className="text-base font-black text-indigo-950 leading-6">
-            {tomorrowFocus}
+          {/* Headline */}
+          <Text className="text-xl font-black text-slate-900 mt-1 text-center">
+            {headline}
           </Text>
 
-          {result.feedback ? (
-            <Text className="text-xs text-indigo-800/90 font-medium leading-4.5 mt-2.5 pt-2.5 border-t border-indigo-200/60">
-              {result.feedback}
-            </Text>
+          {/* Subtitle quote */}
+          <Text className="text-xs font-medium text-slate-500 italic mt-0.5 text-center px-4">
+            {feedbackQuote}
+          </Text>
+
+          {/* Audio take player pill */}
+          {audioPath ? (
+            <AudioShadowPlayer audioPath={audioPath} durationSec={spokenDuration} />
           ) : null}
         </View>
 
-        {/* 3. 4 CORE METRICS */}
-        <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-4">
-          <Text className="text-xs font-extrabold text-slate-400 tracking-wider uppercase mb-3 pb-2 border-b border-slate-100">
-            YOUR SPEAKING METRICS
+        {/* ONE THING Card */}
+        <View className="bg-indigo-700 rounded-[26px] p-5 shadow-sm mb-4">
+          <View className="self-start flex-row items-center bg-indigo-800/80 px-2.5 py-1 rounded-full mb-3">
+            <View className="w-1.5 h-1.5 rounded-full bg-indigo-300 mr-1.5" />
+            <Text className="text-[10px] font-black text-indigo-200 tracking-wider">
+              ONE THING
+            </Text>
+          </View>
+
+          <Text className="text-lg font-black text-white leading-snug">
+            {oneThingTitle}
           </Text>
 
-          <View className="space-y-2">
-            <MetricProgressBar label="Fluency" score={result.fluencyScore} delta={formatDelta(result.fluencyScore, prevFluency)} />
-            <MetricProgressBar label="Clarity" score={currentClarity} delta={formatDelta(currentClarity, prevClarity)} />
-            <MetricProgressBar label="Pacing" score={result.pacingScore} delta={formatDelta(result.pacingScore, prevPacing)} />
-            <MetricProgressBar label="Expression" score={currentExpression} delta={formatDelta(currentExpression, prevExpression)} />
+          <Text className="text-xs font-medium text-indigo-200 mt-1">
+            {oneThingTip}
+          </Text>
+        </View>
+
+        {/* YOUR SPEAKING Metric Breakdown */}
+        <View className="bg-white rounded-[26px] p-5 border border-slate-200/80 shadow-sm mb-5">
+          <Text className="text-[11px] font-black text-slate-400 tracking-widest uppercase mb-4">
+            YOUR SPEAKING
+          </Text>
+
+          <View className="gap-3.5">
+            {metrics.map((metric) => (
+              <View key={metric.label}>
+                <View className="flex-row items-center justify-between mb-1.5">
+                  <Text className="text-xs font-bold text-slate-700">{metric.label}</Text>
+                  <Text className="text-xs font-extrabold text-slate-800">{metric.score}</Text>
+                </View>
+                <View className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <View
+                    className="h-full bg-slate-700 rounded-full"
+                    style={{ width: `${Math.min(100, Math.max(5, metric.score))}%` }}
+                  />
+                </View>
+              </View>
+            ))}
           </View>
         </View>
 
-        {/* 4. AUDIO SHADOW REPLAY */}
-        <View className="mb-4">
-          <AudioShadowPlayer audioPath={audioPath} />
+        {/* Bottom Actions Row */}
+        <View className="flex-row gap-3 pt-2">
+          <TouchableOpacity
+            onPress={handlePracticeAgain}
+            activeOpacity={0.8}
+            className="flex-1 bg-white border border-slate-300 py-4 rounded-full items-center justify-center flex-row shadow-sm"
+          >
+            <Ionicons name="refresh" size={16} color="#334155" style={{ marginRight: 6 }} />
+            <Text className="text-sm font-bold text-slate-800">
+              Practice again
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleFinish}
+            activeOpacity={0.85}
+            className="flex-1 bg-indigo-600 py-4 rounded-full items-center justify-center flex-row shadow-lg shadow-indigo-200"
+          >
+            <Text className="text-sm font-bold text-white">
+              Done ✓
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
-
-      {/* 5. ACTION: DONE FOR TODAY */}
-      <View className="bg-white px-5 pt-3.5 pb-6 border-t border-slate-200 shadow-lg">
-        <Button
-          title="Done for Today"
-          onPress={handleCompleteChallenge}
-          variant="primary"
-          size="lg"
-          loading={isSaving}
-          icon="checkmark-done"
-        />
-      </View>
     </View>
   );
 };

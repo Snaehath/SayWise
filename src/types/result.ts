@@ -90,10 +90,3 @@ export interface SpeakerProfile {
   };
   personalBests: PersonalBests;
 }
-
-export interface JourneyStage {
-  id: string;
-  title: string;
-  isCompleted: boolean;
-  isCurrent: boolean;
-}

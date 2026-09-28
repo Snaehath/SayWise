@@ -1,0 +1,217 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" width="320" height="320">
+  <defs>
+    <!-- Soft warm ambient shadow -->
+    <filter id="duoShadow" x="-20%" y="-15%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#261E7B" flood-opacity="0.22" />
+    </filter>
+
+    <!-- Character Body Gradient: Rich, friendly, vibrant indigo-violet -->
+    <linearGradient id="birdBody" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7B6BF5"/>
+      <stop offset="65%" stop-color="#5B4DDF"/>
+      <stop offset="100%" stop-color="#4938CB"/>
+    </linearGradient>
+
+    <!-- Crest / Feather Tuft Gradient -->
+    <linearGradient id="crestGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9E91FC"/>
+      <stop offset="100%" stop-color="#6453F0"/>
+    </linearGradient>
+
+    <!-- Tummy / Sound Resonance Bib: Soft cream-lavender with audio-wave rhythm -->
+    <linearGradient id="tummyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EBE7FD"/>
+    </linearGradient>
+
+    <!-- Beak & Feet: Bright friendly warm marigold orange -->
+    <linearGradient id="beakGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFB323"/>
+      <stop offset="100%" stop-color="#FA8C16"/>
+    </linearGradient>
+
+    <!-- Headphone Band: Crisp clean tech-accent white -->
+    <linearGradient id="bandGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    
+    <!-- Wing Highlight -->
+    <linearGradient id="wingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6E5DF0"/>
+      <stop offset="100%" stop-color="#4432C2"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Ambient Sound Ring Waves (Active listening & speaking coach aura) -->
+  <g opacity="0.6">
+    <circle cx="160" cy="175" r="135" stroke="#7B6BF5" stroke-width="3" stroke-dasharray="8 12" fill="none" opacity="0.25"/>
+    <circle cx="160" cy="175" r="115" stroke="#5B4DDF" stroke-width="2" stroke-dasharray="4 8" fill="none" opacity="0.35"/>
+  </g>
+
+  <!-- Singing Audio Notes / Sparks (Expressive voice energy) -->
+  <g>
+    <!-- Left floating vocal note -->
+    <g transform="translate(36, 110) rotate(-14)">
+      <ellipse cx="14" cy="20" rx="7" ry="5.5" fill="#34D399"/>
+      <rect x="18" y="4" width="3" height="17" rx="1.5" fill="#34D399"/>
+      <path d="M21 4 C28 5 32 10 32 12 C30 11 25 8 21 8 Z" fill="#34D399"/>
+    </g>
+    <!-- Right speech chime spark -->
+    <g transform="translate(258, 100)">
+      <path d="M12 0 L15 9 L24 12 L15 15 L12 24 L9 15 L0 12 L9 9 Z" fill="#FBBF24"/>
+    </g>
+    <!-- Tiny floating spark -->
+    <circle cx="275" cy="140" r="3.5" fill="#34D399"/>
+    <circle cx="48" cy="165" r="3" fill="#FBBF24"/>
+  </g>
+
+  <!-- MAIN CHARACTER (Duo-inspired Songbird / Vocal Owl "Pip" the SayWise Coach) -->
+  <g filter="url(#duoShadow)">
+
+    <!-- Feet (Duolingo-style rounded chunky organic bird feet) -->
+    <g id="feet">
+      <!-- Left Foot -->
+      <path d="M126 264 C126 274 122 284 116 288 C110 292 100 292 98 286 C96 280 102 274 104 268 Z" fill="#FA8C16"/>
+      <ellipse cx="114" cy="285" rx="14" ry="7" fill="url(#beakGrad)"/>
+      <ellipse cx="128" cy="284" rx="11" ry="6.5" fill="url(#beakGrad)"/>
+      <ellipse cx="102" cy="284" rx="10" ry="6" fill="url(#beakGrad)"/>
+
+      <!-- Right Foot -->
+      <path d="M194 264 C194 274 198 284 204 288 C210 292 220 292 222 286 C224 280 218 274 216 268 Z" fill="#FA8C16"/>
+      <ellipse cx="206" cy="285" rx="14" ry="7" fill="url(#beakGrad)"/>
+      <ellipse cx="192" cy="284" rx="11" ry="6.5" fill="url(#beakGrad)"/>
+      <ellipse cx="218" cy="284" rx="10" ry="6" fill="url(#beakGrad)"/>
+    </g>
+
+    <!-- Main Chubby Body (Signature expressive silhouette: plump, friendly pear shape) -->
+    <path d="M160 55
+             C225 55 252 105 252 178
+             C252 238 222 270 160 270
+             C98 270 68 238 68 178
+             C68 105 95 55 160 55 Z" 
+          fill="url(#birdBody)"/>
+
+    <!-- Head Feather Crest / Audio Wave Tuft (Expressive, perky triple feather) -->
+    <path d="M160 56 C155 35 144 26 138 28 C131 31 138 48 148 55 Z" fill="url(#crestGrad)"/>
+    <path d="M160 55 C162 28 172 18 180 20 C187 23 182 44 170 54 Z" fill="#9E91FC"/>
+    <path d="M160 54 C158 36 160 28 165 29 C170 31 168 45 163 54 Z" fill="#7B6BF5"/>
+
+    <!-- Big Soft Cream Tummy Patch (Warm, huggable belly) -->
+    <path d="M160 148
+             C198 148 218 175 218 216
+             C218 252 196 265 160 265
+             C124 265 102 252 102 216
+             C102 175 122 148 160 148 Z" 
+          fill="url(#tummyGrad)"/>
+
+    <!-- Sound Wave Pattern on Chest / Feathers (Core App Theme Integration!) -->
+    <!-- 5 smooth rounded audio frequency bars in calming jade & violet -->
+    <g opacity="0.85">
+      <rect x="136" y="212" width="6" height="14" rx="3" fill="#5B4DDF"/>
+      <rect x="148" y="202" width="6" height="26" rx="3" fill="#34D399"/>
+      <rect x="160" y="196" width="6" height="34" rx="3" fill="#5B4DDF"/>
+      <rect x="172" y="202" width="6" height="26" rx="3" fill="#34D399"/>
+      <rect x="184" y="212" width="6" height="14" rx="3" fill="#5B4DDF"/>
+    </g>
+
+    <!-- Coach Headset / Headphones (Cute audio gear symbolizing listening & speaking coach) -->
+    <!-- Headband -->
+    <path d="M72 140 C66 95 105 60 160 60 C215 60 254 95 248 140" 
+          fill="none" stroke="#2DD4BF" stroke-width="7" stroke-linecap="round"/>
+    <path d="M78 135 C74 98 108 67 160 67 C212 67 246 98 242 135" 
+          fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+    
+    <!-- Left Ear Cup (Teal-Mint with soft cushion) -->
+    <g transform="translate(60, 126)">
+      <rect x="0" y="0" width="16" height="32" rx="8" fill="#0F766E"/>
+      <rect x="4" y="2" width="14" height="28" rx="7" fill="#14B8A6"/>
+      <circle cx="11" cy="16" r="4" fill="#5EEAD4"/>
+    </g>
+
+    <!-- Right Ear Cup with Boom Microphone! -->
+    <g transform="translate(244, 126)">
+      <rect x="0" y="0" width="16" height="32" rx="8" fill="#0F766E"/>
+      <rect x="-2" y="2" width="14" height="28" rx="7" fill="#14B8A6"/>
+      <circle cx="5" cy="16" r="4" fill="#5EEAD4"/>
+      
+      <!-- Microphone Boom arm curving toward beak -->
+      <path d="M4 24 C-4 38 -20 48 -46 44" fill="none" stroke="#0F766E" stroke-width="4.5" stroke-linecap="round"/>
+      <path d="M4 24 C-4 38 -20 48 -46 44" fill="none" stroke="#14B8A6" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Mic foam tip with active green glowing light -->
+      <rect x="-56" y="38" width="14" height="10" rx="5" fill="#1F2937"/>
+      <circle cx="-50" cy="43" r="2.5" fill="#34D399"/>
+    </g>
+
+    <!-- DUOLINGO-STYLE SIGNATURE GIANT EXPRESSIVE EYES -->
+    <!-- Large circular eye sockets with warm, lively catchlights -->
+    <g id="eyes">
+      <!-- Left Outer Eye Ring / Socket (Duolingo white circles) -->
+      <ellipse cx="124" cy="120" rx="26" ry="29" fill="#FFFFFF"/>
+      <!-- Left Iris / Pupil (Deep friendly indigo pupil) -->
+      <ellipse cx="128" cy="121" rx="17" ry="19" fill="#1E1656"/>
+      <!-- Left Catchlight (Big bright primary highlight) -->
+      <ellipse cx="134" cy="114" rx="7.5" ry="9" fill="#FFFFFF"/>
+      <circle cx="123" cy="128" r="3.5" fill="#FFFFFF"/>
+      <!-- Iris Color Glow -->
+      <path d="M117 126 C120 133 128 136 136 133" stroke="#6366F1" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+
+      <!-- Right Outer Eye Ring / Socket -->
+      <ellipse cx="196" cy="120" rx="26" ry="29" fill="#FFFFFF"/>
+      <!-- Right Iris / Pupil -->
+      <ellipse cx="192" cy="121" rx="17" ry="19" fill="#1E1656"/>
+      <!-- Right Catchlight -->
+      <ellipse cx="198" cy="114" rx="7.5" ry="9" fill="#FFFFFF"/>
+      <circle cx="187" cy="128" r="3.5" fill="#FFFFFF"/>
+      <!-- Iris Color Glow -->
+      <path d="M181 126 C184 133 192 136 200 133" stroke="#6366F1" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    </g>
+
+    <!-- Warm Encouraging Blush Cheeks (Under eyes, super cute) -->
+    <ellipse cx="94" cy="144" rx="12" ry="7" fill="#F472B6" opacity="0.55"/>
+    <ellipse cx="226" cy="144" rx="12" ry="7" fill="#F472B6" opacity="0.55"/>
+
+    <!-- Cheerful Speaking Songbird Beak (Bright, dimensional, smiling open) -->
+    <g id="beak">
+      <!-- Beak Base Shadow -->
+      <path d="M142 138 C142 138 160 162 178 138 Z" fill="#D97706"/>
+      <!-- Upper Beak -->
+      <path d="M138 134 
+               C145 125 175 125 182 134 
+               C186 142 172 152 160 155 
+               C148 152 134 142 138 134 Z" 
+            fill="url(#beakGrad)"/>
+      <!-- Beak Highlight Curve -->
+      <path d="M146 132 C154 128 166 128 174 132" stroke="#FEF08A" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <!-- Happy Open Lower Beak / Vocal Smile (Singing/speaking!) -->
+      <path d="M147 145 C153 158 167 158 173 145" fill="#BE185D"/>
+      <path d="M152 153 C156 150 164 150 168 153" fill="#F472B6"/>
+    </g>
+
+    <!-- Left Wing (Friendly encouraging wave gesture!) -->
+    <!-- Posed waving upwards at the user -->
+    <g transform="translate(42, 145) rotate(-18)">
+      <path d="M30 15 
+               C15 25 2 45 6 68 
+               C10 85 28 88 40 76 
+               C52 64 55 40 46 22 
+               C42 14 36 10 30 15 Z" 
+            fill="url(#wingGrad)"/>
+      <!-- Feather tip details -->
+      <path d="M12 55 C16 68 28 72 36 64" stroke="#8B5CF6" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </g>
+
+    <!-- Right Wing (Tucked cheerfully against the hip/microphone) -->
+    <g transform="translate(225, 160) rotate(12)">
+      <path d="M16 10 
+               C32 20 42 42 38 65 
+               C34 82 18 85 8 72 
+               C-2 58 2 34 10 16 
+               C12 11 14 8 16 10 Z" 
+            fill="url(#wingGrad)"/>
+      <!-- Feather tip details -->
+      <path d="M28 50 C24 64 14 66 8 58" stroke="#8B5CF6" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </g>
+
+  </g>
+</svg>

@@ -9,7 +9,7 @@ import { WelcomeScreen } from '../screens/WelcomeScreen';
 import { challengeService } from '../services/challengeService';
 import { challengeStorage } from '../storage/challengeStorage';
 import { Challenge, Difficulty } from '../types/challenge';
-import { AnalysisResult, ChallengeResult } from '../types/result';
+import { AnalysisResult } from '../types/result';
 
 // types
 type ScreenState =
