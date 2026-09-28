@@ -172,9 +172,9 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
   };
 
   return (
-    <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
+    <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top }}>
       {/* Clean Minimal Apple Header */}
-      <View className="flex-row items-center justify-between px-5 pt-3 pb-3">
+      <View className="flex-row items-center justify-between px-5 pt-3 pb-2">
         <TouchableOpacity
           onPress={handleCancelSession}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -196,11 +196,13 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
         </TouchableOpacity>
       </View>
 
+      {/* Scrollable Content Area */}
       <ScrollView
+        className="flex-1"
         contentContainerStyle={{
           paddingHorizontal: 20,
           paddingTop: 8,
-          paddingBottom: 28,
+          paddingBottom: 16,
         }}
         showsVerticalScrollIndicator={false}
       >
@@ -208,36 +210,36 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
         <View
           style={{
             backgroundColor: '#FFFFFF',
-            borderRadius: 28,
-            padding: 24,
-            borderWidth: 1,
-            borderColor: '#F1F5F9',
-            shadowColor: '#4338CA',
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.05,
-            shadowRadius: 18,
+            borderRadius: 26,
+            padding: 22,
+            borderWidth: 1.5,
+            borderColor: isRecording ? '#C7D2FE' : '#F1F5F9',
+            shadowColor: isRecording ? '#4F46E5' : '#312E81',
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: isRecording ? 0.08 : 0.04,
+            shadowRadius: 16,
             elevation: 3,
-            marginBottom: 20,
+            marginBottom: 16,
           }}
         >
           {/* Card Title Row with subtle Duration badge */}
           <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-xl font-black text-slate-900 tracking-tight leading-snug flex-1 mr-3">
+            <Text className="text-lg font-black text-slate-900 tracking-tight leading-snug flex-1 mr-2">
               {challenge.title}
             </Text>
-            <View className="flex-row items-center bg-slate-100/80 px-2.5 py-1 rounded-full">
+            <View className="flex-row items-center bg-slate-100/90 px-2.5 py-1 rounded-full">
               <Ionicons name="time-outline" size={12} color="#64748B" style={{ marginRight: 4 }} />
               <Text className="text-xs font-semibold text-slate-500">~1 min</Text>
             </View>
           </View>
 
-          {/* Passage or Prompt Text with Apple News / Books typography */}
+          {/* Passage or Prompt Text with Apple Books typography */}
           {isRead ? (
             <Text
               style={{
                 fontSize: 17,
                 lineHeight: 28,
-                color: '#1E293B',
+                color: '#0F172A',
                 letterSpacing: -0.2,
                 fontWeight: '400',
               }}
@@ -247,8 +249,8 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
           ) : (
             <Text
               style={{
-                fontSize: 15,
-                lineHeight: 25,
+                fontSize: 16,
+                lineHeight: 26,
                 color: '#334155',
                 fontWeight: '400',
               }}
@@ -263,14 +265,14 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
           <View
             style={{
               backgroundColor: '#FFFFFF',
-              borderRadius: 24,
-              padding: 16,
+              borderRadius: 22,
+              padding: 14,
               borderWidth: 1,
               borderColor: '#EEF2F6',
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: 18,
+              marginBottom: 14,
               shadowColor: '#0F172A',
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.04,
@@ -279,8 +281,8 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
             }}
           >
             <View className="flex-row items-center flex-1 mr-3">
-              <View className="w-10 h-10 rounded-full bg-indigo-50 items-center justify-center mr-3">
-                <Ionicons name="timer-outline" size={20} color="#4F46E5" />
+              <View className="w-9 h-9 rounded-full bg-indigo-50 items-center justify-center mr-2.5">
+                <Ionicons name="timer-outline" size={18} color="#4F46E5" />
               </View>
               <View className="flex-1">
                 <Text className="text-xs font-bold text-slate-900">Prepare thoughts</Text>
@@ -292,157 +294,145 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
             <TouchableOpacity
               onPress={handleStartRecording}
               activeOpacity={0.85}
-              className="px-4 py-2 rounded-full bg-indigo-600"
+              className="px-3.5 py-1.5 rounded-full bg-indigo-600"
             >
               <Text className="text-xs font-bold text-white">Ready</Text>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* Active Listening / Recording Zone (Apple Voice Memos / Siri aesthetic) */}
-        {isRecording ? (
+        {/* Live Acoustic Stage when Recording */}
+        {isRecording && (
           <View
             style={{
               backgroundColor: '#FFFFFF',
-              borderRadius: 28,
-              paddingVertical: 24,
+              borderRadius: 24,
+              paddingVertical: 16,
               paddingHorizontal: 20,
               borderWidth: 1,
               borderColor: '#F1F5F9',
               shadowColor: '#4338CA',
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.06,
-              shadowRadius: 16,
-              elevation: 3,
-              alignItems: 'center',
-              marginBottom: 24,
-            }}
-          >
-            {/* Live Timer Pill */}
-            <View className="flex-row items-center bg-rose-50 border border-rose-200/80 px-3.5 py-1.5 rounded-full mb-3">
-              <View className="w-2 h-2 rounded-full bg-rose-500 mr-2" />
-              <Text className="text-sm font-extrabold text-rose-950 font-mono tracking-wider">
-                {formatTimer(durationSec)}
-              </Text>
-            </View>
-
-            {/* Mascot in listening pose */}
-            <View className="my-1">
-              <Mascot size={120} variant="listening" />
-            </View>
-
-            {/* Dynamic Acoustic Soundwave */}
-            <View className="py-2 w-full items-center">
-              <WaveformDisplay animated={true} height={34} barCount={25} color="#4F46E5" />
-            </View>
-          </View>
-        ) : !isPrepping ? (
-          /* Ready Stage (Idle before recording starts) */
-          <View
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: 28,
-              paddingVertical: 24,
-              paddingHorizontal: 20,
-              borderWidth: 1,
-              borderColor: '#F1F5F9',
-              shadowColor: '#0F172A',
               shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.04,
+              shadowOpacity: 0.05,
               shadowRadius: 12,
               elevation: 2,
               alignItems: 'center',
-              marginBottom: 24,
+              marginBottom: 14,
             }}
           >
-            <View className="w-20 h-20 rounded-full bg-indigo-50/70 border border-indigo-100 items-center justify-center mb-2">
-              <Mascot size={68} variant="default" />
+            {/* Live Timer & Target Row */}
+            <View className="flex-row items-center gap-2 mb-2">
+              <View className="flex-row items-center bg-rose-50 border border-rose-200/80 px-3 py-1 rounded-full">
+                <View className="w-2 h-2 rounded-full bg-rose-500 mr-1.5" />
+                <Text className="text-xs font-extrabold text-rose-950 font-mono tracking-wider">
+                  {formatTimer(durationSec)}
+                </Text>
+              </View>
+              <View className="bg-slate-100/90 px-2.5 py-1 rounded-full">
+                <Text className="text-[11px] font-semibold text-slate-500">Target ~1 min</Text>
+              </View>
             </View>
-            <Text className="text-sm font-bold text-slate-800">
-              Coach Pip is ready
-            </Text>
+
+            {/* Mascot listening + Acoustic Soundwave in compact inline row */}
+            <View className="flex-row items-center justify-center w-full py-1">
+              <View className="mr-3">
+                <Mascot size={54} variant="listening" />
+              </View>
+              <View className="flex-1 items-center">
+                <WaveformDisplay animated={true} height={28} barCount={19} color="#4F46E5" />
+              </View>
+            </View>
           </View>
-        ) : null}
+        )}
 
         {permissionDenied && (
-          <View className="flex-row items-center bg-rose-50 p-4 rounded-2xl border border-rose-200 mb-4">
-            <Ionicons name="alert-circle" size={20} color="#EF4444" style={{ marginRight: 8 }} />
+          <View className="flex-row items-center bg-rose-50 p-3.5 rounded-2xl border border-rose-200 mb-3">
+            <Ionicons name="alert-circle" size={18} color="#EF4444" style={{ marginRight: 8 }} />
             <Text className="text-xs text-rose-700 flex-1 font-medium">
               Microphone permission is required to evaluate your speaking session.
             </Text>
           </View>
         )}
+      </ScrollView>
 
-        {/* Primary Action Buttons (Apple HIG pill with soft ambient glow) */}
-        <View className="w-full">
-          {isRecording ? (
-            <TouchableOpacity
-              onPress={handleStopRecording}
-              activeOpacity={0.88}
-              style={{
-                backgroundColor: '#4F46E5',
-                paddingVertical: 16,
-                paddingHorizontal: 24,
-                borderRadius: 9999,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                shadowColor: '#4F46E5',
-                shadowOffset: { width: 0, height: 6 },
-                shadowOpacity: 0.28,
-                shadowRadius: 12,
-                elevation: 4,
-              }}
-            >
-              <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-              <Text className="text-white text-[15px] font-bold tracking-wide">
-                Finish ✓
-              </Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              onPress={handleStartRecording}
-              activeOpacity={0.88}
-              style={{
-                backgroundColor: '#4F46E5',
-                paddingVertical: 16,
-                paddingHorizontal: 24,
-                borderRadius: 9999,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                shadowColor: '#4F46E5',
-                shadowOffset: { width: 0, height: 6 },
-                shadowOpacity: 0.25,
-                shadowRadius: 12,
-                elevation: 4,
-              }}
-            >
-              <Ionicons
-                name={isRead ? 'book-outline' : 'mic'}
-                size={18}
-                color="#FFFFFF"
-                style={{ marginRight: 8 }}
-              />
-              <Text className="text-white text-[15px] font-bold tracking-wide">
-                {isRead ? 'Start reading' : 'Start speaking'}
-              </Text>
-              <Ionicons name="arrow-forward" size={16} color="#FFFFFF" style={{ marginLeft: 8 }} />
-            </TouchableOpacity>
-          )}
-
+      {/* FIXED Bottom Sticky Action Bar (Zero Scrolling Required!) */}
+      <View
+        style={{
+          paddingHorizontal: 20,
+          paddingTop: 12,
+          paddingBottom: Math.max(insets.bottom + 8, 20),
+          backgroundColor: '#F8FAFC',
+          borderTopWidth: 1,
+          borderTopColor: '#F1F5F9',
+        }}
+      >
+        {isRecording ? (
           <TouchableOpacity
-            onPress={handleCancelSession}
-            activeOpacity={0.7}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            className="w-full py-3 items-center mt-1"
+            onPress={handleStopRecording}
+            activeOpacity={0.88}
+            style={{
+              backgroundColor: '#4F46E5',
+              paddingVertical: 16,
+              paddingHorizontal: 24,
+              borderRadius: 9999,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              shadowColor: '#4F46E5',
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.28,
+              shadowRadius: 12,
+              elevation: 4,
+            }}
           >
-            <Text className="text-xs font-semibold text-slate-400">
-              Cancel
+            <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <Text className="text-white text-[15px] font-bold tracking-wide">
+              Finish ✓
             </Text>
           </TouchableOpacity>
-        </View>
-      </ScrollView>
+        ) : (
+          <TouchableOpacity
+            onPress={handleStartRecording}
+            activeOpacity={0.88}
+            style={{
+              backgroundColor: '#4F46E5',
+              paddingVertical: 16,
+              paddingHorizontal: 24,
+              borderRadius: 9999,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              shadowColor: '#4F46E5',
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.25,
+              shadowRadius: 12,
+              elevation: 4,
+            }}
+          >
+            <Ionicons
+              name={isRead ? 'book-outline' : 'mic'}
+              size={18}
+              color="#FFFFFF"
+              style={{ marginRight: 8 }}
+            />
+            <Text className="text-white text-[15px] font-bold tracking-wide">
+              {isRead ? 'Start reading' : 'Start speaking'}
+            </Text>
+            <Ionicons name="arrow-forward" size={16} color="#FFFFFF" style={{ marginLeft: 8 }} />
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          onPress={handleCancelSession}
+          activeOpacity={0.7}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          className="w-full py-2.5 items-center mt-0.5"
+        >
+          <Text className="text-xs font-semibold text-slate-400">
+            Cancel
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
