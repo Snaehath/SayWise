@@ -227,12 +227,4 @@ Return a STRICT, compact JSON response (no markdown backticks, pure JSON):
 
     return generateLocalFallbackAnalysis(challenge, durationSec);
   },
-
-  analyzeSpeech(
-    audioPath: string,
-    challenge: Challenge,
-    durationSec: number = 10
-  ): Promise<AnalysisResult> {
-    return analysisService.analyzeRecording(audioPath, challenge, durationSec);
-  },
 };

@@ -1,12 +1,5 @@
 import { ChallengeType, Difficulty } from './challenge';
 
-// types
-export interface MetricDelta {
-  score: number;
-  direction: 'up' | 'steady' | 'down';
-  deltaPercent: number;
-}
-
 export type AnalysisResult = {
   overallScore: number;
   pronunciationScore: number;

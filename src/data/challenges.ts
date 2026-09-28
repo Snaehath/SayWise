@@ -1,12 +1,6 @@
-import {
-  Challenge,
-  ChallengeRecipe,
-  ChallengeType,
-  Difficulty,
-} from '../types/challenge';
+import { ChallengeRecipe } from '../types/challenge';
 
 export class SayWiseChallengeEngine {
-  private static seenHistory = new Set<string>();
 
   // read recipes
   private static readChallenges: ChallengeRecipe[] = [
@@ -171,62 +165,5 @@ export class SayWiseChallengeEngine {
 
   public static getTalkRecipes(): ChallengeRecipe[] {
     return this.talkChallenges;
-  }
-
-  public static getAllRecipes(): ChallengeRecipe[] {
-    return [...this.readChallenges, ...this.talkChallenges];
-  }
-
-  public static getReadChallenge(
-    difficulty: Difficulty,
-    excludedTopics: string[] = []
-  ): Challenge {
-    return this.getChallengeForUser(difficulty, 'read', excludedTopics);
-  }
-
-  public static getTalkChallenge(
-    difficulty: Difficulty,
-    excludedTopics: string[] = []
-  ): Challenge {
-    return this.getChallengeForUser(difficulty, 'talk', excludedTopics);
-  }
-
-  public static getChallengeForUser(
-    difficulty: Difficulty,
-    typePreference?: ChallengeType,
-    excludedTopics: string[] = []
-  ): Challenge {
-    let pool =
-      typePreference === 'read'
-        ? this.getReadRecipes()
-        : this.getTalkRecipes();
-
-    const diffPool = pool.filter((r) => r.difficulty === difficulty);
-    if (diffPool.length > 0) pool = diffPool;
-
-    const freshPool = pool.filter(
-      (r) => !excludedTopics.includes(r.topic) && !this.seenHistory.has(r.topic)
-    );
-
-    const selectionPool = freshPool.length > 0 ? freshPool : pool;
-    const randomIndex = Math.floor(Math.random() * selectionPool.length);
-    const chosen = selectionPool[randomIndex] || this.readChallenges[0];
-
-    this.seenHistory.add(chosen.topic);
-
-    return {
-      id: `daily_${chosen.type}_${Date.now()}`,
-      title: chosen.topic,
-      type: chosen.type,
-      difficulty: chosen.difficulty,
-      paragraph: chosen.prompt,
-      prompt: chosen.prompt,
-      context: chosen.context,
-      focusTarget: chosen.focusTarget,
-      whyChosen: chosen.whyChosen,
-      prepSeconds: chosen.prepSeconds || (chosen.type === 'read' ? 5 : 10),
-      estimatedDurationSec: chosen.speakingSeconds || (chosen.type === 'read' ? 35 : 45),
-      focusAreas: chosen.targets,
-    };
   }
 }

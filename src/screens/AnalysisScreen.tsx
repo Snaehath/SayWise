@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, Text, View } from 'react-native';
+import { Animated, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button } from '../components/Button';
 import { Mascot } from '../components/Mascot';
 import { WaveformDisplay } from '../components/WaveformDisplay';
 import { analysisService } from '../services/analysisService';
@@ -169,20 +168,22 @@ export const AnalysisScreen: React.FC<AnalysisScreenProps> = ({
       {/* Action footer */}
       <View className="w-full">
         {hasError ? (
-          <View className="space-y-3 w-full">
-            <Button
-              title="Try Again"
+          <View className="w-full">
+            <TouchableOpacity
               onPress={handleRetry}
-              variant="primary"
-              size="lg"
-              icon="refresh"
-            />
-            <Button
-              title="Back to Challenge"
+              activeOpacity={0.85}
+              className="w-full bg-indigo-600 py-4 rounded-full items-center justify-center flex-row shadow-lg shadow-indigo-200 mb-2"
+            >
+              <Ionicons name="refresh" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
+              <Text className="text-white text-base font-bold">Try Again</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               onPress={onCancel}
-              variant="ghost"
-              size="md"
-            />
+              activeOpacity={0.7}
+              className="w-full py-3 items-center"
+            >
+              <Text className="text-xs font-semibold text-slate-400">Back to Challenge</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <View className="items-center py-2">

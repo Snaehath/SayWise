@@ -1,13 +1,11 @@
 import { Difficulty } from '../types/challenge';
 import { ChallengeResult, PersonalBests, SpeakerProfile } from '../types/result';
 
-// keys
 const KEYS = {
   SELECTED_DIFFICULTY: 'saywise.selected_difficulty',
   LAST_COMPLETED_DATE: 'saywise.last_completed_date',
   TODAY_RESULT: 'saywise.today_result',
   COMPLETION_HISTORY: 'saywise.completion_history',
-  ONBOARDING_SEEN: 'saywise.onboarding_seen',
   PERSONAL_BESTS: 'saywise.personal_bests',
 };
 
@@ -345,7 +343,6 @@ export const challengeStorage = {
 
     storage.set(KEYS.LAST_COMPLETED_DATE, today);
     storage.set(KEYS.TODAY_RESULT, JSON.stringify(result));
-    storage.set(KEYS.ONBOARDING_SEEN, 'true');
 
     const updatedHistory = [result, ...existingHistory.filter((h) => h.completedAt !== result.completedAt)];
     storage.set(KEYS.COMPLETION_HISTORY, JSON.stringify(updatedHistory));
@@ -363,21 +360,11 @@ export const challengeStorage = {
     }
   },
 
-  hasSeenOnboarding(): boolean {
-    return storage.getString(KEYS.ONBOARDING_SEEN) === 'true';
-  },
-
-  setOnboardingSeen(): void {
-    storage.set(KEYS.ONBOARDING_SEEN, 'true');
-  },
-
   resetAppProgress(): void {
     storage.delete(KEYS.LAST_COMPLETED_DATE);
     storage.delete(KEYS.TODAY_RESULT);
-    storage.delete(KEYS.TODAY_CHALLENGE_ID);
     storage.delete(KEYS.SELECTED_DIFFICULTY);
     storage.delete(KEYS.COMPLETION_HISTORY);
-    storage.delete(KEYS.ONBOARDING_SEEN);
     storage.delete(KEYS.PERSONAL_BESTS);
   },
 };

@@ -14,7 +14,7 @@ function getDayOfYearIndex(arrayLength: number): number {
 }
 
 export const challengeService = {
-  getTodayChallenge(difficulty?: Difficulty, mode: PracticeMode = 'talk'): Challenge {
+  getTodayChallenge(difficulty?: Difficulty, mode: PracticeMode = 'read'): Challenge {
     const diff = difficulty || challengeStorage.getSelectedDifficulty();
 
     if (mode === 'read') {

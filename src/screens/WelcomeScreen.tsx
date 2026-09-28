@@ -52,7 +52,6 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   }, [activeMode]);
 
   const handleStart = () => {
-    challengeStorage.setOnboardingSeen();
     onStartChallenge(activeChallenge);
   };
 

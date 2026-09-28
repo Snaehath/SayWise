@@ -31,7 +31,6 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
   const [isRecording, setIsRecording] = useState(false);
   const [durationSec, setDurationSec] = useState(0);
   const [permissionDenied, setPermissionDenied] = useState(false);
-  const [isPreparing, setIsPreparing] = useState(false);
   const [prepSecondsLeft, setPrepSecondsLeft] = useState(
     currentChallenge.prepSeconds || (isRead ? 0 : 10)
   );
@@ -67,14 +66,12 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
       prepTimerRef.current = null;
     }
     setIsPrepping(false);
-    setIsPreparing(true);
     setPermissionDenied(false);
 
     try {
       const permission = await recordingService.requestPermission();
       if (!permission) {
         setPermissionDenied(true);
-        setIsPreparing(false);
         Alert.alert(
           'Microphone Permission Required',
           'SayWise needs microphone access to record and evaluate your speaking session.'
@@ -96,8 +93,6 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({
     } catch (error) {
       console.warn('Failed to start recording:', error);
       Alert.alert('Recording Error', 'Unable to start recording. Please try again.');
-    } finally {
-      setIsPreparing(false);
     }
   };
 
